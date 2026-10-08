@@ -1,0 +1,26 @@
+{
+  "name": "fitness-platform",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "dev": "pnpm --filter @fitness/web dev",
+    "build": "pnpm --filter @fitness/web build",
+    "typecheck": "pnpm --filter @fitness/web typecheck",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/domain.test.ts",
+    "test:integration": "vitest run tests/database.test.ts",
+    "test:authorization": "vitest run tests/authorization.test.ts",
+    "test:e2e": "playwright test",
+    "lint": "pnpm typecheck"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "@types/node": "^24.0.0",
+    "prettier": "^3.9.9",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3",
+    "vitest": "5.0.3"
+  },
+  "type": "module"
+}

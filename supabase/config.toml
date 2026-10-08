@@ -1,0 +1,9 @@
+project_id = "uyzxiyyjuijbfredvhpg"
+[api]
+enabled = true
+schemas = ["public"]
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:4310"
+additional_redirect_urls = ["http://127.0.0.1:4310/auth/callback"]
+minimum_password_length = 12
