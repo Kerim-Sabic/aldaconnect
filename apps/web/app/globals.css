@@ -3545,3 +3545,32 @@ hr {
   background: #29463c;
   color: white;
 }
+.medication-records .lab-upload summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 0;
+}
+.medication-records .lab-file-picker {
+  position: relative;
+  padding: 16px;
+  border: 1px dashed #9cad9c;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.medication-records .lab-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.medication-records .lab-file-picker:focus-within {
+  outline: 2px solid #29463c;
+  outline-offset: 3px;
+}
+.medication-records input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: #29463c;
+}

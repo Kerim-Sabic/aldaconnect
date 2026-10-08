@@ -10,7 +10,8 @@ export default function LabRecords({
   const [data, setData] = useState<LabData | null>(null),
     [target, setTarget] = useState(""),
     [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [fileName, setFileName] = useState("Datoteka nije odabrana.");
   const serial = useRef(0),
     uploadId = useRef<string | null>(null),
     reviewIds = useRef<Record<string, string>>({});
@@ -157,65 +158,69 @@ export default function LabRecords({
           )}
           {data.allowed && (
             <>
-              <form
-                className="panel"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const form = e.currentTarget;
-                  const fd = new FormData(form);
-                  uploadId.current ??= crypto.randomUUID();
-                  fd.set("id", uploadId.current);
-                  if (target) fd.set("clientId", target);
-                  if (await send(fd)) {
-                    uploadId.current = null;
-                    form.reset();
-                  }
-                }}
-              >
-                <h3>Dodajte testni PDF nalaz</h3>
-                <label>
-                  Naziv
-                  <input name="title" required maxLength={120} />
-                </label>
-                <label>
-                  Ustanova
-                  <input name="provider" required maxLength={120} />
-                </label>
-                <label>
-                  Datum nalaza
-                  <input
-                    name="date"
-                    type="date"
-                    required
-                    max={sarajevoDay()}
-                    defaultValue={sarajevoDay()}
-                  />
-                </label>
-                <label>
-                  PDF datoteka
-                  <input
-                    name="file"
-                    type="file"
-                    accept="application/pdf,.pdf"
-                    required
-                    onChange={() => {
+              <details className="panel lab-upload">
+                <summary>Dodajte testni PDF nalaz</summary>
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+                    const fd = new FormData(form);
+                    uploadId.current ??= crypto.randomUUID();
+                    fd.set("id", uploadId.current);
+                    if (target) fd.set("clientId", target);
+                    if (await send(fd)) {
                       uploadId.current = null;
-                    }}
-                  />
-                </label>
-                <p>
-                  Potvrđujem da su podaci izmišljeni i dokument jasno označen
-                  kao test.
-                </p>
-                <input
-                  type="checkbox"
-                  required
-                  aria-label="Potvrđujem testne podatke"
-                />
-                <button className="primary" disabled={busy}>
-                  Sačuvajte testni nalaz
-                </button>
-              </form>
+                      form.reset();
+                      setFileName("Datoteka nije odabrana.");
+                    }
+                  }}
+                >
+                  <label>
+                    Naziv
+                    <input name="title" required maxLength={120} />
+                  </label>
+                  <label>
+                    Ustanova
+                    <input name="provider" required maxLength={120} />
+                  </label>
+                  <label>
+                    Datum nalaza
+                    <input
+                      name="date"
+                      type="date"
+                      required
+                      max={sarajevoDay()}
+                      defaultValue={sarajevoDay()}
+                    />
+                  </label>
+                  <label className="lab-file-picker">
+                    <span>Odaberite PDF datoteku</span>
+                    <small>{fileName}</small>
+                    <input
+                      className="lab-file-input"
+                      name="file"
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      required
+                      onChange={(e) => {
+                        setFileName(
+                          e.target.files?.[0]?.name ??
+                            "Datoteka nije odabrana.",
+                        );
+                        uploadId.current = null;
+                      }}
+                    />
+                  </label>
+                  <label>
+                    <input type="checkbox" required />
+                    Potvrđujem da su podaci izmišljeni i dokument jasno označen
+                    kao test.
+                  </label>
+                  <button className="primary" disabled={busy}>
+                    Sačuvajte testni nalaz
+                  </button>
+                </form>
+              </details>
               {!data.documents.length && <p>Još nema testnih nalaza.</p>}
               {data.documents.map((d) => (
                 <article className="panel" key={d.id}>
