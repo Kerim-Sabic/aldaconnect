@@ -1,10 +1,28 @@
 "use client";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import Onboarding from "./onboarding";
-import CycleDiary from "./cycle-diary";
-import MedicationRecords from "./medication-records";
-import LabRecords from "./lab-records";
-import DoctorWorkspace from "./doctor-workspace";
+import Brand from "./brand";
+import ThemeControl from "./theme-control";
+import dynamic from "next/dynamic";
+const moduleLoading = () => (
+  <p className="module-loading" role="status">
+    Učitavamo vaš prostor…
+  </p>
+);
+const Onboarding = dynamic(() => import("./onboarding"), {
+  loading: moduleLoading,
+});
+const CycleDiary = dynamic(() => import("./cycle-diary"), {
+  loading: moduleLoading,
+});
+const MedicationRecords = dynamic(() => import("./medication-records"), {
+  loading: moduleLoading,
+});
+const LabRecords = dynamic(() => import("./lab-records"), {
+  loading: moduleLoading,
+});
+const DoctorWorkspace = dynamic(() => import("./doctor-workspace"), {
+  loading: moduleLoading,
+});
 import AdminWorkspace, {
   PasswordForm,
   type AdminData,
@@ -204,6 +222,14 @@ function WorkspaceView({
   const [cloud, setCloud] = useState(false);
   const [inviteToken, setInviteToken] = useState("");
   const [inviteLink, setInviteLink] = useState("");
+  useEffect(() => {
+    document.documentElement.dataset.updateBlocked = String(
+      busy || queue.length > 0 || view === "workout" || Boolean(modal),
+    );
+    return () => {
+      delete document.documentElement.dataset.updateBlocked;
+    };
+  }, [busy, queue.length, view, modal]);
   useEffect(() => {
     setInviteToken(
       new URLSearchParams(window.location.search).get("invite") ?? "",
@@ -424,6 +450,7 @@ function WorkspaceView({
     setData(null);
     setQueue([]);
     setView("today");
+    setMobile(false);
   };
   const formSubmit = async (
     e: FormEvent<HTMLFormElement>,
@@ -481,7 +508,7 @@ function WorkspaceView({
   if (loading)
     return (
       <div className="loading">
-        <div className="brand-symbol">f.</div>
+        <Brand />
         <p>Pripremamo vaš prostor…</p>
       </div>
     );
@@ -489,15 +516,14 @@ function WorkspaceView({
     return (
       <div className="entry">
         {notice}
+        <div className="entry-theme">
+          <ThemeControl />
+        </div>
         <div className="entry-brand">
-          <div className="brand-symbol">f.</div>
-          <span>
-            fitness <small>VAŠ PROSTOR</small>
-          </span>
+          <Brand />
         </div>
         <main className="entry-grid">
           <section>
-            <span className="eyebrow">JEDAN PLAN. CJELOVITA SLIKA.</span>
             <h1>
               Zajedno smo jači.
               <br />
@@ -517,12 +543,6 @@ function WorkspaceView({
               <span>
                 <Heart size={18} /> Vaš vlastiti tempo
               </span>
-            </div>
-            <div className="entry-art" aria-hidden="true">
-              <div />
-              <div />
-              <div />
-              <span>NAPREDAK JE LIČAN.</span>
             </div>
           </section>
           <section className="entry-panel">
@@ -603,7 +623,14 @@ function WorkspaceView({
                           "Potvrdite račun putem e-pošte, a zatim se prijavite.",
                         );
                         setAuth("login");
-                      } else await refresh();
+                      } else {
+                        const signedIn = await refresh();
+                        setView(
+                          signedIn?.actor.role === "trainer"
+                            ? "queue"
+                            : "today",
+                        );
+                      }
                     } catch (err) {
                       setToast((err as Error).message);
                     } finally {
@@ -821,12 +848,6 @@ function WorkspaceView({
   const PlanCard = () =>
     plan ? (
       <div className="workout-feature">
-        <div className="feature-label">
-          <span>
-            <Dumbbell size={15} /> VAŠ SLJEDEĆI TRENING
-          </span>
-          <span className="pill dark-pill">Blok 01</span>
-        </div>
         <div className="workout-main">
           <div>
             <h2>
@@ -861,13 +882,16 @@ function WorkspaceView({
               <ArrowUpRight size={18} />
             </button>
           </div>
-          <div className="orbit-art" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-            <div className="orbit-center">
-              <Activity size={50} strokeWidth={1} />
-            </div>
+          <div className="workout-sequence" aria-label="Vježbe u planu">
+            {plan.exercises.slice(0, 3).map((exercise, index) => (
+              <div key={exercise.id}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{exercise.name}</strong>
+              </div>
+            ))}
+            {plan.exercises.length > 3 && (
+              <small>+ {plan.exercises.length - 3} u vašem planu</small>
+            )}
           </div>
         </div>
         <div className="feature-footer">
@@ -888,18 +912,27 @@ function WorkspaceView({
         <h2>Ovdje počinje vaš sljedeći korak.</h2>
         <p>
           {data.actor.onboarded
-            ? "Vaše postavke su sačuvane. Povežite se s trenerom za individualni plan."
+            ? data.team.some((person) => person.role === "trainer")
+              ? "Plan još nije dodijeljen. Javite se svom treneru za sljedeći korak."
+              : "Vaše postavke su sačuvane. Povežite se s trenerom za individualni plan."
             : "Odaberite šta vam je važno i postavite prve korake."}
         </p>
         <button
           className="primary"
           onClick={() =>
-            setModal({
-              kind: data.actor.onboarded ? "acceptInvite" : "onboard",
-            })
+            data.actor.onboarded &&
+            data.team.some((person) => person.role === "trainer")
+              ? changeView("messages")
+              : setModal({
+                  kind: data.actor.onboarded ? "acceptInvite" : "onboard",
+                })
           }
         >
-          {data.actor.onboarded ? "Prihvatite poziv" : "Uredite moj prostor"}
+          {data.actor.onboarded
+            ? data.team.some((person) => person.role === "trainer")
+              ? "Pošaljite poruku treneru"
+              : "Prihvatite poziv"
+            : "Uredite moj prostor"}
           <ArrowRight size={16} />
         </button>
       </div>
@@ -920,12 +953,20 @@ function WorkspaceView({
         Preskočite na sadržaj
       </a>
       <aside className={"sidebar " + (mobile ? "open" : "")}>
-        <a className="brand" href="/" aria-label="Početna stranica">
-          <span className="brand-symbol">f.</span>
-          <span>
-            fitness<small>VAŠ PROSTOR</small>
-          </span>
+        <a
+          className="brand"
+          href="/"
+          aria-label="Alda Connect · Početna stranica"
+        >
+          <Brand />
         </a>
+        <button
+          className="drawer-close icon-button"
+          aria-label="Zatvorite navigaciju"
+          onClick={() => setMobile(false)}
+        >
+          <X size={22} />
+        </button>
         <div className="workspace-kind">
           {expert ? "STRUČNI PROSTOR" : "VAŠ PROSTOR"}
         </div>
@@ -934,6 +975,7 @@ function WorkspaceView({
             <button
               key={n.id}
               className={view === n.id ? "nav-item active" : "nav-item"}
+              aria-current={view === n.id ? "page" : undefined}
               onClick={() => changeView(n.id)}
             >
               <n.icon size={19} />
@@ -1003,6 +1045,7 @@ function WorkspaceView({
             <strong>{title}</strong>
           </div>
           <div className="top-actions">
+            <ThemeControl />
             {!cloud && (
               <button
                 className="preview-switch"
@@ -1042,7 +1085,6 @@ function WorkspaceView({
         <main id="main" className="main">
           <div className="page-heading">
             <div>
-              <span className="eyebrow">{dateLabel()}</span>
               <h1>
                 {view === "today"
                   ? `${language === "bs" ? "Dobar dan" : "Dobar dan"}, ${first(data.actor.name)}.`
@@ -1052,6 +1094,7 @@ function WorkspaceView({
                       ? "Svako ponavljanje ima smisla."
                       : title}
               </h1>
+              <time className="page-date">{dateLabel()}</time>
               <p>
                 {view === "today"
                   ? "Malo strukture. Malo podrške. Dan koji vas vodi naprijed."
@@ -1214,7 +1257,11 @@ function WorkspaceView({
                         </strong>
                         <small>
                           {data.team.length
-                            ? "Lični trener"
+                            ? data.team[0]?.role === "doctor"
+                              ? "Doktor"
+                              : data.team[0]?.role === "trainer"
+                                ? "Lični trener"
+                                : "Stručna podrška"
                             : "Još niste povezani"}
                         </small>
                       </span>
@@ -1243,7 +1290,6 @@ function WorkspaceView({
                     </button>
                   </section>
                   <div className="quiet-quote">
-                    <span>01 / DUGOROČNI NAPREDAK</span>
                     <p>
                       Ne morate uraditi
                       <br />
@@ -1807,7 +1853,7 @@ function WorkspaceView({
 
           {view === "queue" && (
             <>
-              <div className="metric-grid">
+              <div className="metric-grid trainer-summary">
                 <div className="metric">
                   <ClipboardList size={20} />
                   <span>Zahtijeva vašu pažnju</span>
@@ -2391,11 +2437,38 @@ function WorkspaceView({
           )}
           <footer className="page-footer">
             <span>Napredak je ličan.</span>
-            <span>Fitness · Originalna razvojna verzija</span>
+            <span>Alda Connect · Razvojna verzija</span>
           </footer>
         </main>
       </div>
 
+      <nav className="mobile-bottom-nav" aria-label="Brza navigacija">
+        {nav
+          .filter((n) =>
+            (expert
+              ? ["queue", "clients", "calendar", "messages"]
+              : ["today", "plan", "progress", "messages"]
+            ).includes(n.id),
+          )
+          .map((n) => (
+            <button
+              key={n.id}
+              onClick={() => changeView(n.id)}
+              aria-current={view === n.id ? "page" : undefined}
+            >
+              <n.icon size={21} />
+              <span>{n.id === "queue" ? "Zadaci" : n.label}</span>
+            </button>
+          ))}
+        <button
+          onClick={() => setMobile(!mobile)}
+          aria-expanded={mobile}
+          aria-label="Više opcija"
+        >
+          <Menu size={21} />
+          <span>Više</span>
+        </button>
+      </nav>
       {((!data.actor.onboarded && !previewId) || modal) && (
         <div
           className="modal-backdrop"

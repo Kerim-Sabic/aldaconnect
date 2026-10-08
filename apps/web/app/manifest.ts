@@ -2,15 +2,15 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Fitness · Vaš prostor",
-    short_name: "Fitness",
+    name: "Alda Connect",
+    short_name: "Alda Connect",
     lang: "bs",
     description: "Vaš trening, ishrana i stručna podrška.",
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#f6f5ef",
-    theme_color: "#233e35",
+    background_color: "#f6f3ed",
+    theme_color: "#292620",
     icons: [
       {
         src: "/icons/icon-192.png",

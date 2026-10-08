@@ -1,5 +1,12 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
+  env: {
+    NEXT_PUBLIC_APP_RELEASE:
+      process.env.VERCEL_DEPLOYMENT_ID ||
+      process.env.VERCEL_URL ||
+      process.env.NEXT_PUBLIC_APP_RELEASE ||
+      "local-development",
+  },
   serverExternalPackages: ["@electric-sql/pglite"],
   poweredByHeader: false,
   async headers() {

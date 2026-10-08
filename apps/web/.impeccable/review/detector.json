@@ -1,0 +1,22 @@
+[
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "D:\\Projects\\Amuo\\ventures\\fitness-platform\\source\\apps\\web\\app\\globals.css",
+    "line": 3508,
+    "snippet": "border-left: 3px solid var(--line)"
+  },
+  {
+    "antipattern": "layout-transition",
+    "name": "Layout property animation",
+    "description": "Animating width, height, padding, or margin causes layout thrash and janky performance. Use transform and opacity instead, or grid-template-rows for height animations.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "D:\\Projects\\Amuo\\ventures\\fitness-platform\\source\\apps\\web\\app\\globals.css",
+    "line": 803,
+    "snippet": "transition: width"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "prompt": "Use case: ui-mockup. Create a high-resolution landscape design comparison board for ALDA CONNECT, a premium fitness and health web app, with one spacious desktop trainer dashboard on the left and two complete portrait mobile client screens on the right, one light mode and one dark mode. Flat crisp UI, no browser window, no desk scene. All app text in Bosnian, readable and concise. Fictional demonstration only. Desktop trainer Alda: navigation Pregled, Klijenti, Planovi, Kalendar, Poruke; title \"Dobar dan, Alda\"; useful task queue showing \"Amrudin · Pregled sedmice\", \"Plan treninga\", and button \"Pozovi klijenta\". Show a clean weekly calendar and client activity list. Mobile client Amrudin: heading \"Tvoj dan\", prominent \"Trening snage\", \"5 vježbi · 45 min\", button \"Započni trening\"; secondary Ishrana, Oporavak, Moj tim, and \"Testni nalaz · Čeka pregled\". Bottom navigation Danas, Plan, Napredak, Poruke, Više. Usable thumb-sized controls, disciplined hierarchy, precise typography and ample space, credible fully working product aesthetic. Avoid clinical claims, invented outcomes, real health values, oversized decorative empty panels, excessive metrics, gold gradients or ornamental luxury logos.  Board title at top: \"06 — PRECISION PERFORMANCE\". Visual direction: luxury precision sports technology. Pure cool white and near-black graphite, restrained electric cobalt actions, sharp refined neo-grotesk typography with compact tabular numerals. Confident typography, meticulously aligned data, thin separators, precise compact cards with subtly rounded corners. Dark mode deep graphite with crisp white and cobalt accents. One distinctive horizontally segmented week strip, but standard readable app navigation. Feel like beautifully engineered high-end performance equipment, not gaming or crypto.",
+  "approved": false,
+  "kind": "direction-preview",
+  "generatedAt": "2026-10-08",
+  "tool": "image_gen",
+  "selectedForDirection": true,
+  "selectionDate": "2026-10-08",
+  "measuredComp": false
+}

@@ -1,0 +1,143 @@
+DIRECTION CONCEPT SEED (key: f2ded276; mode: operate; source: api; approved pool: c3b204a1eed6; 306/564 human-approved; rerun with --scope direction --mode operate --from f2ded276 --candidate-count 7 to reproduce this roll against this catalog revision)
+ASSIGNED INDEX: 7
+  After ordering the grounded directions by resonance, build candidate
+  7 of your own grounded list; the assignment never points at a
+  challenger. The assignment is the roll, not a suggestion: your top-ranked
+  direction is what every run would ship, so the script decides which grounded
+  direction gets built. Each direction joins a durable visual system to a
+  concrete expression for the requested first surface, decided as one. It must
+  survive the current task plus navigation, quiet and dense content,
+  interaction and state, and a substantially different future surface. In an
+  attended run, present the assigned direction fully committed and offer
+  re-roll. You may add ONE card for your top-ranked grounded candidate when
+  it is not the assigned direction, kicker IMPECCABLE’S PICK, with an honest risk line
+  naming its familiarity; one pick card, never a ranked lineup, and the pick
+  never takes the lead position. When the assignment IS your top candidate,
+  there is no pick card. Re-roll yourself only
+  on named factual grounds, when the assignment cannot carry the product's
+  truth or task; taste is never grounds.
+  The assignment exists to refuse the model's ranking rut, never to outrank
+  the user or the brief. Never expose assignment metadata in user-facing labels.
+CHALLENGERS:
+  1. a travel document surface pairing a segmented boarding pass with a live gate board, the pass carrying a scannable block and a sequence number while the board reranks flights by departure and reflows a changed gate in place
+     SOURCE ID: vernacular-ephemera-boarding-pass-and-gate-board
+     CREATIVE SPARK: The gate changes and the row does not disappear and come back somewhere else; it moves, and it stays lit until you have noticed.
+     SYSTEM GRAMMAR:
+       - Palette/material: high-contrast neutral panels with one alert color reserved for changes, and a monospaced scannable block as the only texture
+       - Type/composition: the pass divided into labeled segments with tabular figures, and the board ranking flights in a fixed column grid
+       - Topology/navigation: departure time orders everything, so navigation is watching a ranking rather than searching a list
+       - Controls/state: controls are flight rows, a changed gate flashes its alert color and holds it, and boarded flights drop off the board
+       - Responsive/motion: board columns drop by priority and the pass stacks its segments, and motion is a row reranking in place
+     WEB LEVERAGE: live rerank animation preserving row identity, priority-based responsive columns, and persistent change state
+     QUALITY BAR: board https://impeccable.style/worlds/cards/vernacular-ephemera-boarding-pass-and-gate-board.webp · hero https://impeccable.style/worlds/cards/vernacular-ephemera-boarding-pass-and-gate-board-hero.webp
+  2. a celestial star atlas chart, magnitudes as ranked dot sizes on a coordinate sphere, constellation lines and mythic figures faint beneath the data
+     SOURCE ID: notation-diagram-systems-star-atlas
+     CREATIVE SPARK: Under a red flashlight at two in the morning, a cold thumb traces from the chart's inked dots up to the actual sky, and Orion's belt agrees with the paper exactly.
+     SYSTEM GRAMMAR:
+       - Palette/material: deep navy chart ground with chalk-white stars, red-flashlight amber for annotations, the object under the eye ringed in that same night-vision red
+       - Type/composition: light serif italic names the constellations, small tabular figures label coordinates, dot diameter carries the hierarchy the type declines to
+       - Topology/navigation: the sky splits into overlapping charts with matched edges, coordinates gridline the field and an index of named objects points into each plate
+       - Controls/state: importance is dot diameter on a fixed magnitude ramp, variable objects wear distinct rings, the mythic figure layer fades up only on request
+       - Responsive/motion: each plate crops around its brightest anchors at small sizes; panning drifts like slow sidereal motion
+     WEB LEVERAGE: Canvas plots thousands of magnitude-scaled points with smooth zoom between chart plates.
+     QUALITY BAR: board https://impeccable.style/worlds/cards/notation-diagram-systems-star-atlas.webp · hero https://impeccable.style/worlds/cards/notation-diagram-systems-star-atlas-hero.webp
+  3. a boxed-software reference manual lying open at a tabbed section, where the coloured divider board carries no mark at all and every paragraph, figure and keystroke sits on a punched acetate leaf hinged a millimetre above it, the whole book's extent drawn as a stepped tab rail down the fore edge
+     SOURCE ID: rw-manual-acetate-tab-board
+     CREATIVE SPARK: A clear die-cut keyboard template lies across an open manual; its printed legends float above the chrome-yellow divider page beneath, two punch holes at its bound edge and one short hard shadow along its cut side.
+     SYSTEM GRAMMAR:
+       - Palette/material: milk acetate over a board of one section hue at full strength: oxide orange, chrome yellow, grass, teal, ultramarine, violet, sienna; vermilion held out.
+       - Type/composition: one size does the work: Sabon 17/26 at a 62-character measure; Univers heads hang in the fifth margin column of a four-column grid, machine voice in mono.
+       - Topology/navigation: a stepped tab rail down the fore edge, one tab per division, height proportional to extent, hue from the wheel; the current tab extends and is the board.
+       - Controls/state: ply is the only rank, and only a top-ply leaf may be clear. Selected is a punched hole, disabled face-down, pending half-hinged, error a vermilion errata slip.
+       - Responsive/motion: nothing eases or fades; every change is a 90ms two-frame step hinged at the punched edge. Width deals fewer leaves, four columns to two to one.
+     WEB LEVERAGE: Solve leaf alpha at runtime: binary search sRGB source-over compositing against the board hue until the reading field lands in a fixed luminance band, then publish as a custom property. Hinges are steps(2) at 90ms; no easing curve anywhere.
+     QUALITY BAR: board https://impeccable.style/worlds/cards/rw-manual-acetate-tab-board.webp · hero https://impeccable.style/worlds/cards/rw-manual-acetate-tab-board-hero.webp
+  4. an Emigre bitmap type specimen, where coarse pixel letterforms are set proudly at poster scale and the low resolution is the aesthetic
+     SOURCE ID: emigre-bitmap-specimen
+     CREATIVE SPARK: A headline built from visible pixels towers over dense justified columns; the same face repeats at five sizes, and at the smallest the pixels dissolve into smooth gray text.
+     SYSTEM GRAMMAR:
+       - Palette/material: newsprint white and rich black with one synthetic accent; halftone and dot-matrix textures as legitimate surfaces
+       - Type/composition: coarse bitmap display faces against fine text grotesks; specimen-style repetition of one form at many sizes
+       - Topology/navigation: Move by typeface, by size step, and by issue spread.
+       - Controls/state: Scale, compare, and toggle bitmap versus smooth rendering as an honest state.
+       - Responsive/motion: Pixel letterforms scale only in whole-pixel multiples; nothing antialiases unless the reader asks.
+     WEB LEVERAGE: Pixel-honest display type via image-rendering rules and font sizes locked to integer multiples
+     QUALITY BAR: board https://impeccable.style/worlds/cards/emigre-bitmap-specimen.webp · hero https://impeccable.style/worlds/cards/emigre-bitmap-specimen-hero.webp
+  5. a convention circle catalog printed on newsprint, thousands of hand-drawn thumbnail squares packed into a numbered hall grid, each square carrying a circle name, a table code and a drawing done at postage-stamp size
+     SOURCE ID: pop-culture-shelf-doujin-event-catalog
+     CREATIVE SPARK: eight hundred drawings on one page, each one the size of a stamp, each with a table code, and somebody has gone through and circled forty of them in biro with a route planned between them.
+     SYSTEM GRAMMAR:
+       - Palette/material: single-ink black on cheap newsprint that grays under the thumb, with one spot color used only on the hall map dividers
+       - Type/composition: postage-stamp thumbnails packed edge to edge in a numbered grid, circle names set tiny beneath, and a folded hall map keyed to the codes
+       - Topology/navigation: the hall map and the grid are the same space, so navigation moves between a table code and its physical position
+       - Controls/state: controls are thumbnail cells, the active one is circled in pen, and visited ones are struck through by hand
+       - Responsive/motion: the grid repacks in whole cells, and motion is a jump from a catalog cell to its position on the hall map
+     WEB LEVERAGE: a whole-cell responsive thumbnail grid, marked state persisted local, and deep-linking between catalog cell and hall map
+     QUALITY BAR: board https://impeccable.style/worlds/cards/pop-culture-shelf-doujin-event-catalog.webp · hero https://impeccable.style/worlds/cards/pop-culture-shelf-doujin-event-catalog-hero.webp
+  6. a rail concourse split-flap board at rush hour, where cascading letter flaps, platform columns, and departure rhythm hold a thousand travelers in one gaze
+     SOURCE ID: signals-instruments-split-flap-concourse
+     CREATIVE SPARK: A ripple of clacks runs the board, Milan becomes Marseille, and every head in the concourse lifts at the same half-second.
+     SYSTEM GRAMMAR:
+       - Palette/material: matte black flap faces with white paint letters, brushed steel board frame as ground, amber row lamps for delay; cancelled rows drop to dim red type
+       - Type/composition: one condensed white sans on every flap, characters in fixed cells, destinations in caps; the board's ruled rows and columns are the entire composition
+       - Topology/navigation: rows are live entities ranked by time; columns never move, only their flaps.
+       - Controls/state: changes cascade character by character; delayed and cancelled states restyle the row without breaking the grid.
+       - Responsive/motion: the board narrows column priority on phones; the cascade collapses to a single update under
+     WEB LEVERAGE: WebSocket-fed rows animate per-character flips while remaining a semantic, sortable table underneath.
+     QUALITY BAR: board https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse.webp · hero https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse-hero.webp
+Fuse each challenger before judging it: the challenger supplies the form
+  and its system grammar, the product supplies every fact, and clarity wins
+  conflicts. Weigh the fused result against the assigned direction on exactly
+  two axes, audience identification and product clarity. Losing to strong
+  grounded material is a valid outcome; beating a thin or tool-monoculture
+  list is the point. A fused challenger that wins both axes becomes the build.
+  Close the weighing with a verdict per challenger, decided before any
+  borrowing is considered: wins (beats the assigned direction on both axes),
+  competitive (holds one axis), or declined (loses both). A declined
+  challenger is not spent: name the one discipline of its system the assigned
+  direction lacks, and raise the assigned direction to match before
+  presenting it. A donation transfers ambition and system discipline, never
+  the challenger's clothes; one world owns the page. Write each raise as its
+  own named line on the presented direction, and carry every verdict, kept
+  line, and raise into the decision page payload.
+When you can view images, open the QUALITY BAR board and hero for any
+challenger you weigh seriously and for the world you build. They exist as a
+craft bar, the finish level and commitment the build is expected to reach,
+never as a mockup to copy; your surface serves this product, not that render.
+PRODUCT.md and explicit incumbent brand commitments constrain every direction.
+The seed never chooses exact colors, fonts, tokens, or a user preference, and
+it never permits the world and first surface to be selected independently.
+The CREATIVE SPARK is a complete visual system, not a theme or decorative
+reference. Translate every supplied system rule into the product: palette and
+material, type and composition, topology, controls and states, and adaptation.
+Keep the source's visible character, scale, rhythm, and interaction instead of
+reducing vivid grammar to generic nouns. Keep a literal carrier only when it
+becomes functional.
+Ambitious motion, spatial media, or interaction is welcome when it strengthens
+the product without weakening semantics, performance, or fallback behavior.
+MODE RULES (operate, from C:\Users\Djole\.codex\skills\impeccable\reference\mode-operate.md). They govern this surface's directions and every comp you write or judge for it, the decision comps included; where shared guidance conflicts, these win.
+DIRECTIONS
+Someone who uses tools like this one should know where everything is before they notice the world. The world lends four things and only these: type, palette, density, and one signature move. It never supplies the layout, the navigation model, or the controls. Colour is part of the world's contribution, and it does real jobs: a committed palette for the shell (a coloured rail or header, a tinted ground), state colours, data series, selection, and the signature move. A grey screen with one accent colour is the category default without the category's polish, not restraint.
+
+Read every candidate, the assigned direction, and every challenger through that limit before you fuse or judge it. A world taken from a tool or instrument the audience operates (a terminal, a scope, a control panel, a cockpit) or from a fictional interface comes back as a costume of that tool on a working screen: take from it only what transfers as type, palette, density, and a signature move, or replace it from your list. When a catalog world's source is itself an interface language, the same limit holds: it lends type, density, palette, and one signature move, while navigation and controls stay the standard ones for the platform, web components on the web and native controls in an app.
+
+Write each direction's first viewport as the product's shell first: the navigation, the work areas and what each is for, the data the visitor reads first and its states, and then where the signature move lives. Expression may never obscure the task, state, or familiar affordance. Name the signature move concretely, so the comp and the build can find it: service health drawn as a transit map, a schedule set in a timetable's column rhythm. A direction whose world shows up only as a colour scheme has not found its move yet. When you weigh fused challengers, product clarity includes reading as a working product of this category.
+COMPS
+The comp is the product screen, in the direction's committed palette: its shell and navigation with a distinct area for each job and, where there is data, filters over what they scope and charts and tables with clear states. The world enters only through type, palette, density, and the one signature move; it never supplies the page's organisation, so a working screen never reads as a newspaper, a poster, or any other artifact of the world. Every control is a standard one the visitor already knows how to use, a web component on the web and the platform's native control in an app: buttons, tabs, inputs, selects, filters, tables with sortable headers, navigation that reads as navigation. Never a costume of the world's own interface: a terminal's function-key bar or command prompt, an instrument's bezel, ruled ledger paper standing in for a table. A comp an engineer could not build from the platform's standard components is a picture of the tool, not the tool. The finish bar is the best product in the category: an aligned grid, consistent spacing, a real type scale, and clear hierarchy. The signature move adds to a screen that is already that clean; it never stands in for it.
+
+Prompt with the screen's real content: the product name, realistic data with plausible values and units, real labels, and one state worth seeing (an alert, a degraded service, an empty filter result), never placeholder tiles. State colours (red for critical, amber for degraded) sit on top of the world's palette only where they carry meaning, and a headline number that moves over time shows its recent history, with the onset marked when something changed.
+
+Comps two and three vary the product's organisation, never its world coverage: the navigation model (side rail, top bar, command-first), how the work areas divide the screen, which data leads, the density, and where the signature move sits. Each must be recognisably different from the first at thumbnail size; a variant only its prompt can tell apart adds no choice. A variant that adds world material, texture, or ornament goes further in the wrong direction; on a working screen, more world is a costume.
+
+Self-check every render: with the name covered, does it read as a product of its category, could the visitor do the task from it, and is it at least as clean as the category standard and more distinctive than it? If it reads as an artifact of the world first, regenerate with the shell and the work areas named region by region and the world held to its four contributions.
+TELEMETRY: after the user's choice resolves, rerun this script once with
+  --kind <assigned|pick|challenger|canon> --from f2ded276 --scope direction --mode operate,
+  adding --chosen <challenger-id> when a dealt challenger won and keeping
+  --register <safer|bolder> when the resolved round came from a steered hand.
+  One ping per resolved attended round. The ping is anonymous, the card kind
+  plus the catalog id when one won; your grounded candidates' names never
+  leave the machine, and the ping is skipped automatically when DO_NOT_TRACK
+  or IMPECCABLE_NO_TELEMETRY is set.
+A user- or brief-pinned decision beats the roll, always.
+ASSIGNED INDEX (restated for truncated readers): 7. Build candidate
+7 of your own grounded list; seed key f2ded276.

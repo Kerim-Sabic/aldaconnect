@@ -63,6 +63,12 @@ beforeAll(async () => {
   await db.exec(
     readFileSync("supabase/migrations/202610080009_test_labs.sql", "utf8"),
   );
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/202610080010_admin_trainer_split.sql",
+      "utf8",
+    ),
+  );
   for (const [id, name] of [
     [member, "Test Member"],
     [other, "Other Member"],
@@ -83,6 +89,114 @@ beforeAll(async () => {
 });
 afterAll(async () => {
   await db.close();
+});
+
+it("atomically separates Alda from administration without widening private-record grants", async () => {
+  const alda = "ad000000-0000-4000-8000-000000000001";
+  const amrudin = "ad000000-0000-4000-8000-000000000002";
+  const password = "fixture-only-password";
+  await expect(
+    db.query("select public.admin_split_accounts($1,$2)", [
+      "0".repeat(64),
+      password,
+    ]),
+  ).rejects.toThrow("administratorski");
+  await db.exec("begin");
+  try {
+    const denied = async (sql: string, args: string[], message: string) => {
+      await db.exec("savepoint expected_denial");
+      await expect(db.query(sql, args)).rejects.toThrow(message);
+      await db.exec("rollback to savepoint expected_denial");
+    };
+    for (const [id, name] of [
+      [alda, "Alda fixture"],
+      [amrudin, "Amrudin fixture"],
+    ])
+      await db.query("insert into auth.users values($1,$2,$3)", [
+        id,
+        id + "@example.test",
+        JSON.stringify({ name }),
+      ]);
+    await db.query("update public.users set role='admin' where id=$1", [alda]);
+    await db.query(
+      "insert into app_private.username_accounts(username,user_id,password_hash) values('alda-fixture',$1,extensions.crypt(encode(extensions.digest($2,'sha256'),'hex'),extensions.gen_salt('bf',12)))",
+      [alda, password],
+    );
+    const login = (
+      await db.query<{ v: any }>(
+        "select public.username_login('alda-fixture',$1) v",
+        [password],
+      )
+    ).rows[0].v;
+    const result = (
+      await db.query<{ v: any }>(
+        "select public.admin_split_accounts($1,$2) v",
+        [login.token, password],
+      )
+    ).rows[0].v;
+    expect(result.ok).toBe(true);
+    expect(
+      (
+        await db.query<{ role: string }>(
+          "select role from public.users where id=$1",
+          [alda],
+        )
+      ).rows[0].role,
+    ).toBe("trainer");
+    expect(
+      (
+        await db.query(
+          "select * from public.relationships where expert_id=$1 and client_id=$2 and status='active'",
+          [alda, amrudin],
+        )
+      ).rows,
+    ).toHaveLength(1);
+    expect(
+      (
+        await db.query(
+          "select * from public.medication_access where client_id=$1",
+          [amrudin],
+        )
+      ).rows,
+    ).toHaveLength(0);
+    await denied(
+      "select public.username_workspace($1)",
+      [login.token],
+      "istekla",
+    );
+    const adminLogin = (
+      await db.query<{ v: any }>("select public.username_login('Admin',$1) v", [
+        password,
+      ])
+    ).rows[0].v;
+    expect(adminLogin.ok).toBe(true);
+    const admin = (
+      await db.query<{ v: any }>("select public.username_workspace($1) v", [
+        adminLogin.token,
+      ])
+    ).rows[0].v;
+    expect(admin.actor.role).toBe("admin");
+    const preview = (
+      await db.query<{ v: any }>(
+        "select public.username_workspace($1,'snapshot','{}',null,$2) v",
+        [adminLogin.token, alda],
+      )
+    ).rows[0].v;
+    expect(preview.readOnly).toBe(true);
+    expect(preview.actor.role).toBe("trainer");
+    await denied(
+      "select public.username_workspace($1,'invite','{}',null,$2)",
+      [adminLogin.token, alda],
+      "bez izmjena",
+    );
+    await denied(
+      "select public.admin_split_accounts($1,$2)",
+      [adminLogin.token, password],
+      "administratorski",
+    );
+  } finally {
+    await db.exec("rollback");
+  }
 });
 
 it("requires client consent for both trainer and doctor edits and preserves attributed versions", async () => {

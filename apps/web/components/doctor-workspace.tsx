@@ -2,6 +2,8 @@
 import { useState } from "react";
 import LabRecords from "./lab-records";
 import MedicationRecords from "./medication-records";
+import Brand from "./brand";
+import ThemeControl from "./theme-control";
 export default function DoctorWorkspace({
   name,
   readOnly,
@@ -19,14 +21,17 @@ export default function DoctorWorkspace({
   return (
     <main className="doctor-records">
       <header className="panel">
-        <p>ALDA CONNECT · Doktorski prostor</p>
+        <div className="doctor-utilities">
+          <Brand />
+          <ThemeControl />
+        </div>
         <h1>{name}</h1>
         {readOnly ? (
           <button onClick={back}>Vratite se u administraciju</button>
         ) : (
           <button onClick={logout}>Odjavite se</button>
         )}
-        <nav>
+        <nav aria-label="Doktorski prostor">
           <button onClick={() => setTab("labs")} aria-pressed={tab === "labs"}>
             Nalazi
           </button>

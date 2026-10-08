@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { ArrowUpRight, ShieldCheck, Users, LogOut } from "lucide-react";
 import { modules, type Actor } from "@/lib/domain";
+import Brand from "./brand";
+import ThemeControl from "./theme-control";
 export type AdminData = {
   actor: Actor;
   adminUsers?: { id: string; name: string; role: string; onboarded: boolean }[];
@@ -31,10 +33,7 @@ export default function AdminWorkspace({
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <div className="entry-brand">
-          <div className="brand-symbol">f.</div>
-          <span>
-            fitness <small>ADMINISTRACIJA</small>
-          </span>
+          <Brand />
         </div>
         <span className="avatar sage">A</span>
         <h2>{data.actor.name}</h2>
@@ -61,11 +60,45 @@ export default function AdminWorkspace({
         </button>
       </aside>
       <main className="admin-main">
-        <span className="eyebrow">GLAVNI ADMINISTRATOR</span>
+        <div className="admin-utilities">
+          <span>Administracija</span>
+          <ThemeControl />
+        </div>
         <h1>Dobro došli, {data.actor.name}.</h1>
         <p className="muted">
           Pregled korisničkih prostora i razvoj platforme.
         </p>
+        <section
+          className="role-previews"
+          aria-label="Pregledi korisničkih prostora"
+        >
+          <h2>Odaberite prostor</h2>
+          <p>
+            Pregledi su samo za čitanje. Privatna evidencija zahtijeva dozvolu
+            klijenta.
+          </p>
+          <div>
+            {["client", "trainer", "doctor"].map((role) => {
+              const user = users.find((u) => u.role === role);
+              return (
+                <button
+                  className="secondary"
+                  key={role}
+                  disabled={!user && role !== "trainer"}
+                  onClick={() => preview(user?.id ?? "role:trainer")}
+                >
+                  {roles[role]} <ArrowUpRight size={16} />
+                </button>
+              );
+            })}
+            <button className="secondary" disabled>
+              Nutricionista · U pripremi
+            </button>
+            <button className="secondary" disabled>
+              Fizioterapeut · U pripremi
+            </button>
+          </div>
+        </section>
         {view === "overview" && (
           <>
             <div className="admin-stats">

@@ -11,6 +11,51 @@ export default function InstallApp() {
   const [help, setHelp] = useState(false);
   const [offline, setOffline] = useState(false);
   const [failure, setFailure] = useState(false);
+  const [newRelease, setNewRelease] = useState("");
+  const [dismissed, setDismissed] = useState("");
+  const [updateMessage, setUpdateMessage] = useState("");
+  useEffect(() => {
+    let stopped = false;
+    let checking = false;
+    const check = async () => {
+      if (
+        checking ||
+        !navigator.onLine ||
+        document.visibilityState !== "visible"
+      )
+        return;
+      checking = true;
+      try {
+        const response = await fetch("/api/release", { cache: "no-store" });
+        if (!response.ok) return;
+        const result = await response.json();
+        if (
+          !stopped &&
+          typeof result.release === "string" &&
+          result.release !== process.env.NEXT_PUBLIC_APP_RELEASE
+        )
+          setNewRelease(result.release);
+        if ("serviceWorker" in navigator)
+          await (await navigator.serviceWorker.getRegistration())?.update();
+      } catch {
+        /* A failed update check never interrupts normal use. */
+      } finally {
+        checking = false;
+      }
+    };
+    void check();
+    const interval = window.setInterval(check, 5 * 60 * 1000);
+    window.addEventListener("focus", check);
+    window.addEventListener("online", check);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+      window.removeEventListener("focus", check);
+      window.removeEventListener("online", check);
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, []);
   useEffect(() => {
     const media = window.matchMedia("(display-mode: standalone)");
     const standalone = () =>
@@ -50,66 +95,108 @@ export default function InstallApp() {
     };
   }, []);
   return (
-    <div className="install-tools">
-      {offline && (
-        <span role="status">
-          <WifiOff size={15} /> Bez veze · za nove podatke potrebna je veza
-        </span>
-      )}
-      {!installed && (
-        <button
-          onClick={async () => {
-            if (!prompt) {
-              setHelp(true);
-              return;
-            }
-            try {
-              await prompt.prompt();
-              await prompt.userChoice;
-              setPrompt(null);
-            } catch {
-              setHelp(true);
-            }
-          }}
+    <>
+      {newRelease && newRelease !== dismissed && (
+        <section
+          className="update-notice"
+          role="status"
+          aria-label="Ažuriranje aplikacije"
         >
-          <Download size={16} /> Dodajte na početni ekran
-        </button>
+          <strong>Nova verzija je dostupna.</strong>
+          <p>
+            {updateMessage ||
+              "Sačuvajte unos prije ažuriranja. Vaša prijava i podaci ostaju povezani."}
+          </p>
+          <div>
+            <button
+              className="primary"
+              onClick={() => {
+                if (document.documentElement.dataset.updateBlocked === "true") {
+                  setUpdateMessage(
+                    "Završite trening, sačuvajte promjene i sinhronizujte serije prije ažuriranja.",
+                  );
+                  return;
+                }
+                if (
+                  window.confirm(
+                    "Jeste li sačuvali unos? Ažuriranje će ponovo otvoriti aplikaciju.",
+                  )
+                )
+                  window.location.reload();
+              }}
+            >
+              Ažurirajte aplikaciju
+            </button>
+            <button
+              className="secondary"
+              onClick={() => setDismissed(newRelease)}
+            >
+              Kasnije
+            </button>
+          </div>
+        </section>
       )}
-      {help && (
-        <div
-          className="install-help"
-          role="dialog"
-          aria-label="Instalacija aplikacije"
-        >
+      <div className="install-tools">
+        {offline && (
+          <span role="status">
+            <WifiOff size={15} /> Bez veze · za nove podatke potrebna je veza
+          </span>
+        )}
+        {!installed && (
           <button
-            className="icon-btn"
-            aria-label="Zatvorite upute"
-            onClick={() => setHelp(false)}
+            onClick={async () => {
+              if (!prompt) {
+                setHelp(true);
+                return;
+              }
+              try {
+                await prompt.prompt();
+                await prompt.userChoice;
+                setPrompt(null);
+              } catch {
+                setHelp(true);
+              }
+            }}
           >
-            <X size={18} />
+            <Download size={16} /> Dodajte na početni ekran
           </button>
-          <h3>Vaš prostor, na jedan dodir.</h3>
-          <p>
-            iPhone / iPad: otvorite stranicu u Safariju, odaberite{" "}
-            <strong>Podijeli → Dodaj na početni ekran</strong>.
-          </p>
-          <p>
-            Android / računar: u meniju preglednika odaberite{" "}
-            <strong>Instaliraj aplikaciju</strong> ili{" "}
-            <strong>Dodaj na početni ekran</strong>.
-          </p>
-          <p>
-            Prijavite se istim računom. Instalirana aplikacija koristi istu bazu
-            i sinhronizuje podatke dok ste povezani.
-          </p>
-          {failure && (
+        )}
+        {help && (
+          <div
+            className="install-help"
+            role="dialog"
+            aria-label="Instalacija aplikacije"
+          >
+            <button
+              className="icon-btn"
+              aria-label="Zatvorite upute"
+              onClick={() => setHelp(false)}
+            >
+              <X size={18} />
+            </button>
+            <h3>Vaš prostor, na jedan dodir.</h3>
             <p>
-              Priprema instalacije nije uspjela. Osvježite stranicu kada budete
-              povezani.
+              iPhone / iPad: otvorite stranicu u Safariju, odaberite{" "}
+              <strong>Podijeli → Dodaj na početni ekran</strong>.
             </p>
-          )}
-        </div>
-      )}
-    </div>
+            <p>
+              Android / računar: u meniju preglednika odaberite{" "}
+              <strong>Instaliraj aplikaciju</strong> ili{" "}
+              <strong>Dodaj na početni ekran</strong>.
+            </p>
+            <p>
+              Prijavite se istim računom. Instalirana aplikacija koristi istu
+              bazu i sinhronizuje podatke dok ste povezani.
+            </p>
+            {failure && (
+              <p>
+                Priprema instalacije nije uspjela. Osvježite stranicu kada
+                budete povezani.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
