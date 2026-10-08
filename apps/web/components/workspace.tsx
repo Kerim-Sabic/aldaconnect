@@ -1595,7 +1595,9 @@ function WorkspaceView({
           )}
 
           {view === "medications" &&
-            (expert || selected.includes("medications")) && (
+            (expert ||
+              selected.includes("medications") ||
+              Boolean(previewId)) && (
               <MedicationRecords
                 key={data.actor.id + clientId}
                 clientId={clientId || undefined}
