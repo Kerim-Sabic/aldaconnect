@@ -16,6 +16,9 @@ beforeAll(async () => {
  create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb);
  create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
  create function extensions.digest(text,text) returns bytea language sql as $$select decode(md5($1),'hex')$$;
+ create function extensions.crypt(text,text) returns text language sql as $$select case when $2 like '%:test-salt' then case when split_part($2,':',1)=$1 then $2 else 'wrong' end else $1||':'||$2 end$$;
+ create function extensions.gen_salt(text,integer) returns text language sql as $$select 'test-salt'::text$$;
+ create function extensions.gen_random_bytes(integer) returns bytea language sql as $$select decode(md5(random()::text)||md5(random()::text),'hex')$$;
  create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
  grant usage on schema public,auth to authenticated; grant execute on function auth.uid() to authenticated;`);
   await db.exec(
@@ -33,6 +36,18 @@ beforeAll(async () => {
   await db.exec(
     readFileSync(
       "supabase/migrations/202610080004_bosnian_messages.sql",
+      "utf8",
+    ),
+  );
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/202610080005_username_accounts.sql",
+      "utf8",
+    ),
+  );
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/202610080006_admin_previews_invites.sql",
       "utf8",
     ),
   );
@@ -266,4 +281,150 @@ it("stores timed holds as seconds rather than repetitions", async () => {
   await db.query(`select public.workspace_action('completeSession',$1)`, [
     { sessionId: session },
   ]);
+});
+const admin = "00000000-0000-4000-8000-000000000010";
+async function usernameLogin(name: string, password: string) {
+  return (
+    await db.query<{ result: { token?: string; error?: string } }>(
+      "select public.username_login($1,$2) as result",
+      [name, password],
+    )
+  ).rows[0].result;
+}
+async function usernameAction(
+  token: string,
+  action = "snapshot",
+  payload: Record<string, unknown> = {},
+  preview: string | null = null,
+) {
+  return (
+    await db.query<{ result: Record<string, any> }>(
+      "select public.username_workspace($1,$2,$3,null,$4) as result",
+      [token, action, JSON.stringify(payload), preview],
+    )
+  ).rows[0].result;
+}
+it("uses persistent username sessions without granting anonymous table access", async () => {
+  await db.query("insert into auth.users values($1,$2,$3)", [
+    admin,
+    "admin@example.test",
+    JSON.stringify({ name: "Test Administrator" }),
+  ]);
+  await db.query("update public.users set role='admin' where id=$1", [admin]);
+  for (const [name, id] of [
+    ["test-admin", admin],
+    ["test-client", member],
+  ])
+    await db.query(
+      "insert into app_private.username_accounts(username,user_id,password_hash) values($1,$2,extensions.crypt(encode(extensions.digest('initial','sha256'),'hex'),extensions.gen_salt('bf',12)))",
+      [name, id],
+    );
+  const session = await usernameLogin("TEST-CLIENT", "initial");
+  expect(session.token).toHaveLength(64);
+  await db.exec("set role anon");
+  try {
+    await expect(
+      db.query("select * from app_private.username_accounts"),
+    ).rejects.toThrow();
+    const snapshot = await usernameAction(session.token!);
+    expect(snapshot.actor.id).toBe(member);
+    expect(snapshot.adminUsers).toBeUndefined();
+    await expect(
+      usernameAction(session.token!, "snapshot", {}, other),
+    ).rejects.toThrow("Pregledi");
+    await expect(usernameAction("0".repeat(64))).rejects.toThrow("sesija");
+    await usernameAction(session.token!, "diary", {
+      kind: "water",
+      label: "Voda",
+      value: 250,
+    });
+    await usernameAction(session.token!, "logout");
+    await expect(usernameAction(session.token!)).rejects.toThrow("sesija");
+  } finally {
+    await db.exec("reset role");
+  }
+});
+it("admin previews are read only and restore the request identity", async () => {
+  const session = await usernameLogin("test-admin", "initial");
+  await act(other);
+  const dashboard = await usernameAction(session.token!);
+  expect(dashboard.adminUsers.length).toBeGreaterThan(2);
+  const preview = await usernameAction(session.token!, "snapshot", {}, member);
+  expect(preview.actor.id).toBe(member);
+  expect(preview.readOnly).toBe(true);
+  expect(
+    (await db.query<{ id: string }>("select auth.uid()::text as id")).rows[0]
+      .id,
+  ).toBe(other);
+  await expect(
+    usernameAction(
+      session.token!,
+      "diary",
+      { kind: "water", label: "No", value: 1 },
+      member,
+    ),
+  ).rejects.toThrow("Pregledi");
+  await expect(
+    usernameAction(session.token!, "diary", {
+      kind: "water",
+      label: "No",
+      value: 1,
+    }),
+  ).rejects.toThrow("stručni račun");
+});
+it("throttles repeated wrong passwords and revokes other sessions after password change", async () => {
+  for (let i = 0; i < 5; i++)
+    expect(
+      (await usernameLogin("test-client", "incorrect")).error,
+    ).toBeTruthy();
+  expect((await usernameLogin("test-client", "initial")).token).toBeUndefined();
+  await db.exec(
+    "update app_private.username_accounts set locked_until=null,failures=0 where username='test-client'",
+  );
+  const first = await usernameLogin("test-client", "initial"),
+    second = await usernameLogin("test-client", "initial");
+  await expect(
+    usernameAction(first.token!, "changePassword", {
+      currentPassword: "incorrect",
+      password: "new-long-password",
+    }),
+  ).rejects.toThrow("trenutnu");
+  await usernameAction(first.token!, "changePassword", {
+    currentPassword: "initial",
+    password: "new-long-password",
+  });
+  await expect(usernameAction(second.token!)).rejects.toThrow("sesija");
+  expect(
+    (await usernameLogin("test-client", "new-long-password")).token,
+  ).toHaveLength(64);
+});
+it("trainer invitations also resolve existing username clients and preserve acceptance checks", async () => {
+  await act(trainer);
+  const result = (
+    await db.query<{ result: { inviteToken: string } }>(
+      "select public.workspace_action('invite',$1) as result",
+      [{ email: "test-client" }],
+    )
+  ).rows[0].result;
+  expect(result.inviteToken).toBeTruthy();
+  await act(other);
+  await expect(
+    db.query("select public.workspace_action('acceptInvite',$1)", [
+      { token: result.inviteToken },
+    ]),
+  ).rejects.toThrow();
+  await act(member);
+  await db.query("select public.workspace_action('acceptInvite',$1)", [
+    { token: result.inviteToken },
+  ]);
+  const session = await usernameLogin("test-admin", "initial");
+  const preview = await usernameAction(
+    session.token!,
+    "snapshot",
+    {},
+    "role:trainer",
+  );
+  expect(preview.actor.role).toBe("trainer");
+  expect(preview.readOnly).toBe(true);
+  expect(preview.clients).toEqual([]);
 });

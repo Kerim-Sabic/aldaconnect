@@ -1,5 +1,5 @@
 export type Role =
-  "client" | "trainer" | "doctor" | "nutritionist" | "therapist";
+  "admin" | "client" | "trainer" | "doctor" | "nutritionist" | "therapist";
 export const modules = [
   {
     id: "training",

@@ -1,5 +1,10 @@
 "use client";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import Onboarding from "./onboarding";
+import AdminWorkspace, {
+  PasswordForm,
+  type AdminData,
+} from "./admin-workspace";
 import {
   Activity,
   ArrowUpRight,
@@ -79,6 +84,11 @@ type Diary = {
   created_at: string;
 };
 type State = {
+  adminUsers?: AdminData["adminUsers"];
+  audit?: AdminData["audit"];
+  readOnly?: boolean;
+  usernameAccount?: boolean;
+  mustChangePassword?: boolean;
   sessions: { id: string; plan_id: string; completed_at: string | null }[];
   actor: Actor;
   preferences: {
@@ -159,6 +169,22 @@ const time = (value: string) =>
 const first = (name: string) => name.split(" ")[0];
 
 export default function Workspace() {
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  return (
+    <WorkspaceView
+      key={previewId ?? "main"}
+      previewId={previewId}
+      setPreviewId={setPreviewId}
+    />
+  );
+}
+function WorkspaceView({
+  previewId,
+  setPreviewId,
+}: {
+  previewId: string | null;
+  setPreviewId(id: string | null): void;
+}) {
   const [data, setData] = useState<State | null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("today");
@@ -172,6 +198,17 @@ export default function Workspace() {
   const [query, setQuery] = useState("");
   const [language, setLanguage] = useState("bs");
   const [cloud, setCloud] = useState(false);
+  const [inviteToken, setInviteToken] = useState("");
+  const [inviteLink, setInviteLink] = useState("");
+  useEffect(() => {
+    setInviteToken(
+      new URLSearchParams(window.location.search).get("invite") ?? "",
+    );
+  }, []);
+  useEffect(() => {
+    if (inviteToken && data?.actor.role === "client" && data.actor.onboarded)
+      setModal({ kind: "acceptInvite" });
+  }, [inviteToken, data?.actor.id, data?.actor.onboarded]);
   useEffect(() => {
     fetch("/api/config")
       .then((r) => r.json())
@@ -187,24 +224,30 @@ export default function Workspace() {
     (!expert && session
       ? data?.plans.find((p) => p.id === session.plan_id)
       : undefined) ?? data?.plans[0];
-  const refresh = useCallback(async (selected?: string) => {
-    const res = await fetch(
-      "/api/workspace" +
-        (selected ? "?client=" + encodeURIComponent(selected) : ""),
-      { cache: "no-store" },
-    );
-    if (res.status === 401) {
-      setData(null);
+  const refresh = useCallback(
+    async (selected?: string) => {
+      const res = await fetch(
+        "/api/workspace?" +
+          new URLSearchParams({
+            ...(selected ? { client: selected } : {}),
+            ...(previewId ? { preview: previewId } : {}),
+          }),
+        { cache: "no-store" },
+      );
+      if (res.status === 401) {
+        setData(null);
+        setLoading(false);
+        return;
+      }
+      const next = await res.json();
+      if (!res.ok) throw Error(next.error);
+      setData(next);
+      setClientId(next.clientId);
       setLoading(false);
-      return;
-    }
-    const next = await res.json();
-    if (!res.ok) throw Error(next.error);
-    setData(next);
-    setClientId(next.clientId);
-    setLoading(false);
-    return next as State;
-  }, []);
+      return next as State;
+    },
+    [previewId],
+  );
   useEffect(() => {
     refresh()
       .then((next) => {
@@ -236,6 +279,10 @@ export default function Workspace() {
     action: string,
     payload: Record<string, unknown> = {},
   ) => {
+    if (previewId && action !== "logout")
+      throw Error(
+        "Ovo je pregled bez izmjena. Vratite se u administratorski prostor.",
+      );
     const res = await fetch("/api/workspace", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -291,7 +338,7 @@ export default function Workspace() {
     );
   };
   const syncQueue = useCallback(async () => {
-    if (!data || !navigator.onLine) return;
+    if (!data || !navigator.onLine || previewId) return;
     let pending: Queued[] = [];
     try {
       pending = JSON.parse(
@@ -337,7 +384,7 @@ export default function Workspace() {
     weight: number,
     reps: number,
   ) => {
-    if (!data || !plan || !session) return;
+    if (!data || !plan || !session || previewId) return;
     const payload = {
       sessionId: session.id,
       ...{
@@ -584,12 +631,12 @@ export default function Workspace() {
                   </label>
                 )}
                 <label>
-                  E-pošta
+                  {auth === "login" ? "Korisničko ime ili e-pošta" : "E-pošta"}
                   <input
                     name="email"
-                    type="email"
+                    type={auth === "login" ? "text" : "email"}
                     required
-                    autoComplete="email"
+                    autoComplete={auth === "login" ? "username" : "email"}
                   />
                 </label>
                 <label>
@@ -598,7 +645,7 @@ export default function Workspace() {
                     name="password"
                     type="password"
                     required
-                    minLength={12}
+                    minLength={auth === "login" ? 1 : 12}
                     maxLength={128}
                     autoComplete={
                       auth === "login" ? "current-password" : "new-password"
@@ -622,6 +669,66 @@ export default function Workspace() {
                 </button>
               </form>
             )}
+            {cloud && auth === "login" && (
+              <div className="auth-help">
+                <button
+                  className="text-link"
+                  onClick={() => setModal({ kind: "forgotPassword" })}
+                >
+                  Zaboravili ste lozinku?
+                </button>
+                <button
+                  className="text-link"
+                  onClick={() => setModal({ kind: "resendConfirmation" })}
+                >
+                  Pošaljite potvrdu ponovo
+                </button>
+              </div>
+            )}
+            {modal &&
+              ["forgotPassword", "resendConfirmation"].includes(modal.kind) && (
+                <form
+                  onSubmit={(e) =>
+                    formSubmit(e, async (f) => {
+                      setBusy(true);
+                      try {
+                        await request(modal.kind, { email: f.get("email") });
+                        setToast(
+                          "Ako račun postoji, poruka će biti poslana na unesenu adresu.",
+                        );
+                        setModal(null);
+                      } finally {
+                        setBusy(false);
+                      }
+                    })
+                  }
+                >
+                  <h3>
+                    {modal.kind === "forgotPassword"
+                      ? "Obnova lozinke"
+                      : "Potvrda računa"}
+                  </h3>
+                  <label>
+                    E-pošta
+                    <input
+                      name="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                    />
+                  </label>
+                  <button className="primary" disabled={busy}>
+                    Pošaljite link
+                  </button>
+                  <button
+                    type="button"
+                    className="text-link"
+                    onClick={() => setModal(null)}
+                  >
+                    Odustanite
+                  </button>
+                </form>
+              )}
           </section>
         </main>
         {toast && (
@@ -632,6 +739,10 @@ export default function Workspace() {
       </div>
     );
 
+  if (data.actor.role === "admin")
+    return (
+      <AdminWorkspace data={data} preview={setPreviewId} logout={logout} />
+    );
   const nav = expert
     ? [
         { id: "queue", label: "Radni zadaci", icon: ClipboardList },
@@ -766,6 +877,14 @@ export default function Workspace() {
 
   return (
     <div className="app">
+      {previewId && (
+        <div className="preview-banner">
+          <strong>Administratorski pregled · bez izmjena</strong>
+          <button onClick={() => setPreviewId(null)}>
+            Vratite se u administraciju
+          </button>
+        </div>
+      )}
       {notice}
       <a className="skip" href="#main">
         Preskočite na sadržaj
@@ -2012,6 +2131,15 @@ export default function Workspace() {
 
           {view === "settings" && (
             <>
+              {data.usernameAccount && !previewId && (
+                <section className="admin-card">
+                  <h2>Lozinka računa</h2>
+                  {data.mustChangePassword && (
+                    <p>Zamijenite početnu lozinku vlastitom lozinkom.</p>
+                  )}
+                  <PasswordForm />
+                </section>
+              )}
               <div className="settings-layout">
                 <section>
                   <div className="section-title">
@@ -2177,7 +2305,7 @@ export default function Workspace() {
         </main>
       </div>
 
-      {(!data.actor.onboarded || modal) && (
+      {((!data.actor.onboarded && !previewId) || modal) && (
         <div
           className="modal-backdrop"
           onClick={() => data.actor.onboarded && setModal(null)}
@@ -2205,6 +2333,8 @@ export default function Workspace() {
             {!data.actor.onboarded || modal?.kind === "onboard" ? (
               <Onboarding
                 selected={selected}
+                initial={data.preferences.intake}
+                readOnly={Boolean(previewId)}
                 busy={busy}
                 onSave={async (intake, chosen) => {
                   await mutate(
@@ -2382,9 +2512,12 @@ export default function Workspace() {
                       { email: f.get("email") },
                       "Poziv je kreiran. E-pošta nije poslana.",
                     );
-                    setToast("Kod poziva: " + value.inviteToken);
-                    const result = document.getElementById("invite-result");
-                    if (result) result.textContent = value.inviteToken;
+                    setInviteLink(
+                      new URL(
+                        "/?invite=" + encodeURIComponent(value.inviteToken),
+                        window.location.origin,
+                      ).href,
+                    );
                   })
                 }
               >
@@ -2392,17 +2525,51 @@ export default function Workspace() {
                 <h2 id="dialog-title">Pozovite klijenta.</h2>
                 <p>
                   {cloud
-                    ? "Kreirajte poziv za odgovarajuću adresu e-pošte. Podijelite kod s klijentom. E-pošta se ne šalje automatski."
+                    ? "Kreirajte poziv za odgovarajuću adresu e-pošte. Podijelite link s klijentom. Poziv vrijedi 7 dana; e-pošta s pozivom se ne šalje automatski."
                     : "Kreira lokalni poziv za odgovarajuću izmišljenu adresu. Poruka ne napušta ovaj računar."}
                 </p>
                 <label>
-                  E-pošta klijenta
-                  <input name="email" type="email" required />
+                  Korisničko ime ili e-pošta klijenta
+                  <input
+                    name="email"
+                    type={cloud ? "text" : "email"}
+                    required
+                    maxLength={254}
+                  />
                 </label>
                 <button className="primary full" disabled={busy}>
                   Kreirajte poziv <Plus size={16} />
                 </button>
-                <code id="invite-result" className="invite-result" />
+                {inviteLink && (
+                  <div className="invite-result">
+                    <label>
+                      Link poziva
+                      <input
+                        readOnly
+                        value={inviteLink}
+                        onFocus={(e) => e.target.select()}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="text-link"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(inviteLink);
+                          setToast("Link je kopiran.");
+                        } catch {
+                          setToast("Označite i kopirajte link iz polja.");
+                        }
+                      }}
+                    >
+                      <Copy size={15} /> Kopirajte link
+                    </button>
+                    <p>
+                      Klijent se prijavljuje ili kreira račun istom adresom, a
+                      zatim prihvata poziv.
+                    </p>
+                  </div>
+                )}
               </form>
             ) : modal?.kind === "acceptInvite" ? (
               <form
@@ -2412,6 +2579,12 @@ export default function Workspace() {
                       "acceptInvite",
                       { token: f.get("token") },
                       "Saradnja s trenerom je uspostavljena.",
+                    );
+                    setInviteToken("");
+                    window.history.replaceState(
+                      null,
+                      "",
+                      window.location.pathname,
                     );
                     setModal(null);
                   })
@@ -2426,7 +2599,7 @@ export default function Workspace() {
                 </p>
                 <label>
                   Kod poziva
-                  <input name="token" required />
+                  <input name="token" required defaultValue={inviteToken} />
                 </label>
                 <button className="primary full" disabled={busy}>
                   Prihvatite poziv <ArrowRight size={16} />
@@ -2459,100 +2632,6 @@ export default function Workspace() {
         </div>
       )}
     </div>
-  );
-}
-
-function Onboarding({
-  selected,
-  busy,
-  onSave,
-}: {
-  selected: string[];
-  busy: boolean;
-  onSave: (
-    intake: { goal: string; days: number; setting: string },
-    chosen: string[],
-  ) => Promise<void>;
-}) {
-  const [chosen, setChosen] = useState(selected);
-  return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const f = new FormData(e.currentTarget);
-        try {
-          await onSave(
-            {
-              goal: String(f.get("goal")),
-              days: Number(f.get("days")),
-              setting: String(f.get("setting")),
-            },
-            chosen,
-          );
-        } catch {}
-      }}
-    >
-      <span className="eyebrow">PRILAGODIMO PROSTOR VAMA</span>
-      <h2 id="dialog-title">Šta vam je važno?</h2>
-      <p>Prvo odaberite alate. Izbor možete promijeniti u Postavkama.</p>
-      <div className="onboard-modules">
-        {modules
-          .filter((m) => m.available)
-          .map((m) => (
-            <label key={m.id} className={chosen.includes(m.id) ? "chosen" : ""}>
-              <input
-                type="checkbox"
-                checked={chosen.includes(m.id)}
-                onChange={() =>
-                  setChosen(
-                    chosen.includes(m.id)
-                      ? chosen.filter((x) => x !== m.id)
-                      : [...chosen, m.id],
-                  )
-                }
-              />
-              <strong>{m.name}</strong>
-              <small>{m.description}</small>
-            </label>
-          ))}
-      </div>
-      <label>
-        Vaš glavni cilj
-        <select name="goal">
-          <option>Razviti snagu i kontinuitet</option>
-          <option>Poboljšati opću kondiciju</option>
-          <option>Unaprijediti svakodnevno zdravlje i dobrobit</option>
-        </select>
-      </label>
-      <div className="form-row">
-        <label>
-          Dana sedmično
-          <input
-            name="days"
-            type="number"
-            min={1}
-            max={7}
-            defaultValue={3}
-            required
-          />
-        </label>
-        <label>
-          Mjesto treninga
-          <select name="setting">
-            <option>Teretana</option>
-            <option>Kod kuće</option>
-            <option>Na otvorenom</option>
-          </select>
-        </label>
-      </div>
-      <p className="quiet-note">
-        Ovo čuva vaše postavke. Ne predstavlja ljekarsko odobrenje niti stvara
-        trošak.
-      </p>
-      <button className="primary full" disabled={busy}>
-        Kreirajte moj prostor <ArrowRight size={16} />
-      </button>
-    </form>
   );
 }
 

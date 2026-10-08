@@ -18,6 +18,7 @@ import {
 } from "@/lib/domain";
 import { cloudConfigured } from "@/lib/supabase/server";
 import { cloudGet, cloudPost } from "@/lib/supabase/workspace";
+import { onboardingIntake } from "@/lib/onboarding";
 export const runtime = "nodejs";
 const cookieName = "fitness_local_session";
 const limits = new Map<string, { count: number; reset: number }>();
@@ -259,13 +260,7 @@ export async function POST(req: NextRequest) {
         break;
       }
       case "onboard": {
-        const intake = z
-          .object({
-            goal: z.string().max(100),
-            days: z.number().min(1).max(7),
-            setting: z.string().max(60),
-          })
-          .parse(p.intake);
+        const intake = onboardingIntake.parse(p.intake);
         const selected = normalizeModules(z.array(z.string()).parse(p.modules));
         await db.transaction(async (tx) => {
           await tx.query(

@@ -3096,3 +3096,290 @@ hr {
     scroll-behavior: auto !important;
   }
 }
+.admin-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  background: var(--cream, #f6f5ef);
+  color: var(--forest, #233e35);
+}
+.admin-sidebar {
+  padding: 34px 26px;
+  background: #fffef9;
+  border-right: 1px solid #dce1d8;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.admin-sidebar .entry-brand {
+  margin-bottom: 48px;
+}
+.admin-sidebar p {
+  color: #6a756c;
+}
+.admin-sidebar nav {
+  display: grid;
+  gap: 8px;
+  margin: 32px 0;
+}
+.admin-sidebar nav button {
+  text-align: left;
+  border: 0;
+  background: none;
+  padding: 13px 16px;
+  border-radius: 12px;
+  color: #58675b;
+}
+.admin-sidebar nav button.active {
+  background: #e6eddf;
+  color: #233e35;
+  font-weight: 600;
+}
+.admin-main {
+  padding: 54px clamp(24px, 4vw, 72px);
+  max-width: 1360px;
+}
+.admin-main h1 {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(30px, 4vw, 48px);
+  margin: 16px 0;
+}
+.admin-card {
+  background: #fffef9;
+  padding: 28px;
+  border: 1px solid #dce1d8;
+  border-radius: 20px;
+  margin: 26px 0;
+}
+.admin-card h2 {
+  font-family: Georgia, serif;
+  font-size: 29px;
+  font-weight: 400;
+}
+.admin-card p {
+  line-height: 1.7;
+}
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin: 32px 0;
+}
+.admin-stats article {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid #dce1d8;
+  border-radius: 18px;
+  padding: 24px;
+  background: #fffef9;
+}
+.admin-stats strong {
+  font-size: 36px;
+  font-family: Georgia, serif;
+  font-weight: 400;
+}
+.admin-roster article,
+.admin-module {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 0;
+  border-bottom: 1px solid #e4e5dd;
+}
+.admin-roster article > div {
+  flex: 1;
+}
+.admin-roster small {
+  display: block;
+  color: #718071;
+  margin-top: 6px;
+}
+.admin-module > div {
+  flex: 1;
+}
+.admin-module p {
+  margin: 6px 0;
+  color: #718071;
+}
+.password-form {
+  max-width: 450px;
+  display: grid;
+  gap: 18px;
+}
+.preview-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 120;
+  background: #233e35;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  font-size: 13px;
+}
+.preview-banner button {
+  border: 1px solid #9bac99;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: none;
+  color: white;
+}
+.app:has(.preview-banner) {
+  padding-top: 64px;
+}
+.install-tools {
+  position: fixed;
+  bottom: 14px;
+  right: 18px;
+  z-index: 150;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+}
+.install-tools > button,
+.install-tools > span {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: #fffef9;
+  border: 1px solid #cbd5c5;
+  padding: 10px 14px;
+  border-radius: 24px;
+  color: #233e35;
+  box-shadow: 0 4px 20px #233e3512;
+}
+.install-help {
+  position: absolute;
+  bottom: 48px;
+  right: 0;
+  width: min(380px, calc(100vw - 36px));
+  background: #fffef9;
+  border: 1px solid #cbd5c5;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 12px 60px #233e3520;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.install-help .icon-btn {
+  float: right;
+}
+.install-help h3 {
+  font-size: 22px;
+  font-family: Georgia, serif;
+  font-weight: 400;
+}
+.auth-help {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  font-size: 13px;
+}
+.reset-page {
+  max-width: 500px;
+  margin: 10vh auto;
+  padding: 28px;
+}
+.reset-page form {
+  display: grid;
+  gap: 22px;
+}
+.reset-page h1 {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: 40px;
+}
+@media (max-width: 768px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+  .admin-sidebar {
+    position: static;
+    height: auto;
+    padding: 22px;
+  }
+  .admin-sidebar .entry-brand {
+    margin-bottom: 24px;
+  }
+  .admin-sidebar nav {
+    display: flex;
+    overflow: auto;
+    margin: 18px 0;
+  }
+  .admin-sidebar nav button {
+    flex-shrink: 0;
+  }
+  .admin-main {
+    padding: 28px 20px 90px;
+  }
+  .admin-stats {
+    grid-template-columns: 1fr;
+  }
+  .admin-roster article {
+    flex-wrap: wrap;
+  }
+  .admin-module {
+    align-items: flex-start;
+  }
+  .preview-banner {
+    padding: 8px 12px;
+  }
+  .install-tools {
+    bottom: 8px;
+    right: 10px;
+  }
+  .install-tools > button {
+    font-size: 11px;
+  }
+  .admin-card {
+    padding: 20px;
+  }
+}
+.onboard-progress {
+  display: flex;
+  gap: 6px;
+  margin: 15px 0 24px;
+}
+.onboard-progress span {
+  height: 4px;
+  flex: 1;
+  background: #e4e7dd;
+  border-radius: 4px;
+}
+.onboard-progress .done {
+  background: #728b61;
+}
+.onboard-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 26px;
+}
+.onboard-actions > .primary {
+  margin-left: auto;
+}
+.onboard-summary {
+  background: #f4f6ee;
+  padding: 8px 20px;
+  border-radius: 14px;
+}
+.onboard-summary p {
+  display: grid;
+  gap: 5px;
+  font-size: 14px;
+}
+.onboard-summary strong {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6e7d66;
+}

@@ -1,29 +1,38 @@
-# Fitness platform
+# Alda Connect
 
-Original fitness and expert workspace, implemented under the approved full-product plan in `../plans/BUILD-PLAN.md`. **The full product remains in development.** The interface is Bosnian; project communication and technical documentation are English.
+Original fitness and expert workspace. The approved full-product plan and backlog live in the parent project's `plans` directory. **The full product remains in development.** Product UI is Bosnian; technical documentation is English.
 
 ## Run locally
 
-Use Node 24 and pnpm 11.25.0. Run `pnpm install --frozen-lockfile`, copy `.env.example` to `apps/web/.env.local`, fill the Supabase publishable URL/key, then run `pnpm dev`. Open http://127.0.0.1:4310.
+Use Node 24 and pnpm 11.25.0. Run `pnpm install --frozen-lockfile`, copy `.env.example` to `apps/web/.env.local`, configure the Supabase publishable URL/key, then run `pnpm dev`. Open http://127.0.0.1:4310.
 
-`LOCAL_DEVELOPMENT=true` plus `LOCAL_SYNTHETIC_TESTS=true` selects fictional localhost-only profiles with PGlite persistence in `apps/web/.data`. Never set these flags on Vercel. Restart the development server after a local schema change. Local fixtures and cloud accounts are separate.
+`LOCAL_DEVELOPMENT=true` plus `LOCAL_SYNTHETIC_TESTS=true` selects fictional localhost-only profiles with PGlite persistence in `apps/web/.data`. Never enable these flags on Vercel. Local fixtures and cloud accounts are separate. Restart after local schema changes.
 
-## Supabase and Vercel
+## Hosting and identity
 
-Cloud project: `fitness-platform`, ref `uyzxiyyjuijbfredvhpg`, EU Ireland, Free plan. Apply SQL files in `supabase/migrations` in filename order to an empty development project. The four current migrations were applied on 8 October 2026. No real accounts or health records were imported. The private storage bucket has no object access policies yet; document uploads remain unavailable.
+Web app: https://aldaconnect.fit. `www` redirects to the apex. Vercel project `fitness-workspace`, team `amuos-projects`, root `apps/web`, Frankfurt functions. The custom domain is publicly accessible with application authentication; preview deployment protection remains enabled. This is a development release, not a commercial or clinical launch.
 
-Vercel project: `fitness-workspace` in `amuos-projects`, with `apps/web` as root directory and Frankfurt functions. Configure only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Privileged Supabase secrets are not used by the app. Auth identities are validated server-side; database functions check ownership/active assignments and table reads use RLS. Signup metadata cannot grant professional roles.
+Supabase project `fitness-platform`, ref `uyzxiyyjuijbfredvhpg`, Free plan, EU Ireland. Six migrations are applied as of 8 October 2026. Apply migrations in filename order in a new project. All application tables have RLS. No service-role secret is used by the app. The private-records bucket has no object access policies; uploads remain unavailable.
 
-Review URL: https://fitness-workspace-amuos-projects.vercel.app. Vercel labels the stable-alias deployment target `production`; this is a protected development review, not a commercial/clinical launch. Deployment protection is enabled. Email confirmation redirects to the exact `/auth/callback` URL on that host. General email delivery, password recovery, expert verification and live billing remain release work.
+Email users authenticate through Supabase with confirmation, resend and password-recovery flows. Bosnian HTML templates are in `supabase/templates`; `/auth/confirm` verifies token hashes after an explicit button press. Auth Site URL is the custom domain. Resend custom SMTP sends as Alda Connect / fitness@mail.aldaconnect.fit. The dedicated sending domain is verified and the integration key is restricted to it. Actual inbox delivery remains unaccepted; evidence is tracked in the parent project's BUILD-STATUS.md.
+
+Two user-requested persistent username accounts exist: administrator Alda and client Amrudin. Credentials are not in this repository. Username sessions use an HttpOnly Secure SameSite cookie, random tokens stored hashed, server-side expiry, private bcrypt credential storage and failed-login throttling. Initial credentials should be changed through account settings before wider use. User signup cannot grant expert or admin roles. Admin client/trainer previews are read-only and SQL denies preview mutations.
+
+## Implemented flows
+
+Member login/signup, up to seven adaptive general onboarding steps, selectable module interests with later editing, four available core modules, assigned plan versions, workout sessions, rep and timed-set logs, completion, check-ins and expert review tasks, basic nutrition/recovery diary, coaching messages and trainer invitation tokens. Invitations can target an email or an existing username; links expire after seven days. Trainers copy/share invitation links; automatic trainer invitation email dispatch is not yet implemented.
+
+Alda has a profile roster, read-only client and empty trainer previews, module availability and basic activity history. Amrudin's onboarding is left for him to complete. Advanced expert spaces remain in preparation.
+
+The PWA manifest, icons, service worker and Bosnian installation instructions support home-screen installation for all roles. Installed users use the same backend. Private pages/API responses are not cached. An offline reconnect page is available; the existing opened-workout set queue supports later synchronization. General offline access and physical-device installation have not been accepted.
 
 ## Validation
 
-`pnpm test` runs 19 domain, database, isolation and migration checks. `pnpm typecheck` and `pnpm build` validate the app. `tests/live-supabase-smoke.sql` is a rollback-only live SQL check; its verified run passed with zero persistent cloud accounts and RLS enabled on every application table. Its inserts never send email.
+`pnpm test`: 23 passing domain, persistence, isolation and migration checks. `pnpm typecheck` and `pnpm build` validate the app. `tests/live-supabase-smoke.sql` and `tests/live-username-smoke.sql` are rollback-only live database checks. Live username smoke passed with real pgcrypto and checked login, logout, client isolation and admin preview; test users were rolled back. Local crypto stubs do not prove cryptographic behavior.
 
-Browser acceptance evidence is in `../deliverables/evidence/2026-10-08`. Tested locally: client set recording, check-in to trainer review, plan-version preservation, timed holds stored separately from reps, workout completion and Bosnian screens. Email confirmation through an actual inbox, cloud expert signup, payment processing, device sync and clinical workflows have not been accepted. The Playwright command is reserved for future automated browser coverage; current browser acceptance was manual through the in-app browser.
+Manual browser acceptance covers local coaching flows and expanded onboarding, plus live Alda/Amrudin sign-in and read-only admin preview on the HTTPS custom domain. Evidence is stored in the parent project's `deliverables/evidence/2026-10-08`. Actual inbox confirmation/recovery, live trainer invitation acceptance and physical mobile installation remain unaccepted.
 
-## Current boundaries
+## Remaining full-product work
 
-Implemented first slice: member signup/sign-in integration, configurable modules/intake, assigned plans and immutable versions, separate workout sessions, rep/duration logs, check-ins and linked review tasks, basic diary, coaching messages and email-matched invitation tokens. The local fixture switch is absent from cloud UI.
+Professional credential/organization onboarding, paid entitlements and regional merchant setup, independent program catalogue, scheduling/progression, full nutrition planning, private file scanning/upload lifecycle, cycle/rehab/labs/medication workflows, wearables, community, complete privacy lifecycle and native apps. Clinical activation requires qualified service ownership. No clinical or PED protocol advice is generated.
 
-Not complete: paid entitlements, self-guided program catalogue, expert credential/organization onboarding, appointments, full nutrition planning, private file scanning and upload lifecycle, cycle/rehab/labs/medication workflows, device integrations, community, full privacy lifecycle, native apps and operational release gates. Planned modules are visibly unavailable. No clinical or PED protocol advice is generated.
