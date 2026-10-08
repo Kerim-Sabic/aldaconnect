@@ -3466,3 +3466,82 @@ hr {
 .cycle-diary .progress-panel {
   overflow-wrap: anywhere;
 }
+
+.medication-records {
+  display: grid;
+  gap: 24px;
+}
+.medication-records .panel,
+.doctor-records > header {
+  background: #fffefa;
+  border: 1px solid #dce1d7;
+  border-radius: 18px;
+  padding: 24px;
+}
+.medication-records label {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  font-weight: 600;
+}
+.medication-records label:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: center;
+}
+.medication-records input:not([type="checkbox"]),
+.medication-records select,
+.medication-records textarea {
+  width: 100%;
+  border: 1px solid #b9c8b9;
+  border-radius: 9px;
+  padding: 12px;
+  background: white;
+  color: #29463c;
+  font: inherit;
+}
+.medication-records textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+.medication-records button,
+.doctor-records header button {
+  margin: 8px 12px 8px 0;
+  border: 1px solid #b9c8b9;
+  border-radius: 10px;
+  padding: 11px 16px;
+  cursor: pointer;
+  background: #edf1e8;
+  color: #29463c;
+}
+.medication-records button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.medication-records blockquote {
+  border-left: 3px solid #92ad92;
+  margin: 16px 0;
+  padding: 12px 20px;
+  background: #f4f6ef;
+  overflow-wrap: anywhere;
+}
+.medication-records .badge {
+  display: inline-block;
+  padding: 5px 10px;
+  background: #ffe7d2;
+  color: #743e18;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.doctor-records > header {
+  margin-bottom: 24px;
+}
+.doctor-records nav {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.doctor-records nav button[aria-pressed="true"] {
+  background: #29463c;
+  color: white;
+}

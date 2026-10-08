@@ -60,6 +60,9 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  await db.exec(
+    readFileSync("supabase/migrations/202610080009_test_labs.sql", "utf8"),
+  );
   for (const [id, name] of [
     [member, "Test Member"],
     [other, "Other Member"],
@@ -709,4 +712,168 @@ it("keeps medication access out of admin previews and revokes access on relation
     )
   ).rows[0].value;
   expect(context.clients).toHaveLength(1);
+});
+
+it("keeps test lab PDFs private, consented and attributed with immutable review history", async () => {
+  const doctor = "d0000000-0000-4000-8000-000000000009";
+  await db.query(
+    `insert into auth.users values($1,'lab-doctor@example.test','{"name":"Lab Test Doctor"}')`,
+    [doctor],
+  );
+  await db.query(`update public.users set role='doctor' where id=$1`, [doctor]);
+  await db.query(
+    `insert into public.relationships(id,client_id,expert_id,status) values('lab-test-assignment',$1,$2,'active')`,
+    [member, doctor],
+  );
+  const call = async (actor: string, action: string, payload: object = {}) =>
+    (
+      await db.query<{ v: any }>(
+        "select app_private.labs_dispatch($1,$2,$3) v",
+        [actor, action, JSON.stringify(payload)],
+      )
+    ).rows[0].v;
+  const id = "e0000000-0000-4000-8000-000000000001",
+    reviewId = "e0000000-0000-4000-8000-000000000002";
+  const pdf = Buffer.from("%PDF-1.4\nFICTIONAL TEST\n%%EOF").toString("base64");
+  const upload = {
+    id,
+    title: "Synthetic report",
+    provider: "Fictional fixture",
+    date: "2026-01-01",
+    fileBase64: pdf,
+  };
+  expect((await call(doctor, "snapshot", { clientId: member })).allowed).toBe(
+    false,
+  );
+  await expect(
+    call(doctor, "upload", { ...upload, clientId: member }),
+  ).rejects.toThrow("odobrio");
+  await call(member, "upload", upload);
+  await call(member, "upload", upload);
+  expect(
+    (await call(member, "snapshot")).documents.filter((d: any) => d.id === id),
+  ).toHaveLength(1);
+  await expect(call(other, "file", { id })).rejects.toThrow("Pristup");
+  await expect(call(trainer, "snapshot", { clientId: member })).rejects.toThrow(
+    "ovlaštenom",
+  );
+  await expect(
+    call(member, "upload", {
+      ...upload,
+      fileBase64: Buffer.from("%PDF-other").toString("base64"),
+    }),
+  ).rejects.toThrow("drugom");
+  await call(member, "grant", { doctorId: doctor, granted: true });
+  expect(
+    Buffer.from(
+      (await call(doctor, "file", { id, clientId: member })).fileBase64,
+      "base64",
+    ).toString(),
+  ).toBe(Buffer.from(pdf, "base64").toString());
+  const review = {
+    id,
+    reviewId,
+    clientId: member,
+    note: "Synthetic workflow review",
+    decision: "reviewed",
+    doctor_name: "Forged name",
+  };
+  await expect(call(member, "review", review)).rejects.toThrow(
+    "ovlašteni doktor",
+  );
+  await call(doctor, "review", review);
+  await call(doctor, "review", review);
+  const snapshot = await call(member, "snapshot");
+  expect(snapshot.reviews.filter((v: any) => v.id === reviewId)).toHaveLength(
+    1,
+  );
+  expect(snapshot.reviews.find((v: any) => v.id === reviewId).doctor_name).toBe(
+    "Lab Test Doctor",
+  );
+  expect(JSON.stringify(snapshot)).not.toContain("fileBase64");
+  await expect(
+    call(doctor, "review", { ...review, note: "Different content" }),
+  ).rejects.toThrow("drugim sadržajem");
+  await call(member, "remove", { id });
+  await expect(
+    call(doctor, "review", {
+      ...review,
+      reviewId: "e0000000-0000-4000-8000-000000000003",
+    }),
+  ).rejects.toThrow("ovlašteni");
+  await call(member, "restore", { id });
+  await call(member, "grant", { doctorId: doctor, granted: false });
+  await expect(call(doctor, "file", { id, clientId: member })).rejects.toThrow(
+    "odobrio",
+  );
+  await db.exec("set role authenticated");
+  await expect(db.query("select * from public.lab_documents")).rejects.toThrow(
+    "permission denied",
+  );
+  await expect(db.query("select * from app_private.lab_files")).rejects.toThrow(
+    "permission denied",
+  );
+  await db.exec("reset role");
+});
+
+it("provisions only visibly marked test doctors through a valid admin session", async () => {
+  const admin = "a0000000-0000-4000-8000-000000000009",
+    token = "c".repeat(64);
+  await db.query(
+    `insert into auth.users values($1,'test-admin@example.test','{"name":"Test Admin"}')`,
+    [admin],
+  );
+  await db.query(`update public.users set role='admin' where id=$1`, [admin]);
+  await db.query(
+    `insert into app_private.username_sessions(token_hash,user_id) values(encode(extensions.digest($1,'sha256'),'hex'),$2)`,
+    [token, admin],
+  );
+  const password = "fixture-only-password";
+  await expect(
+    db.query(
+      `select public.admin_test_doctor($1,'fixture-doc',$2,'Fixture Doctor',$3)`,
+      ["x".repeat(64), password, member],
+    ),
+  ).rejects.toThrow("Administratorski");
+  const profile = (
+    await db.query<{ v: any }>(
+      `select public.admin_test_doctor($1,'fixture-doc',$2,'Fixture Doctor',$3) v`,
+      [token, password, member],
+    )
+  ).rows[0].v;
+  expect(profile.name).toBe("Fixture Doctor (test)");
+  expect(
+    (
+      await db.query<{ v: any }>(
+        "select app_private.labs_dispatch($1,'snapshot',$2) v",
+        [profile.id, JSON.stringify({ clientId: member })],
+      )
+    ).rows[0].v.allowed,
+  ).toBe(true);
+  expect(
+    (
+      await db.query("select is_test_profile from public.users where id=$1", [
+        profile.id,
+      ])
+    ).rows[0].is_test_profile,
+  ).toBe(true);
+  await expect(
+    db.query(
+      `select public.admin_test_doctor($1,'fixture-doc',$2,'Changed',$3)`,
+      [token, password, member],
+    ),
+  ).rejects.toThrow("zauzeto");
+  const login = (
+    await db.query<{ v: any }>(
+      `select public.username_login('fixture-doc',$1) v`,
+      [password],
+    )
+  ).rows[0].v;
+  expect(login.ok).toBe(true);
+  const workspace = (
+    await db.query<{ v: any }>(`select public.username_workspace($1) v`, [
+      login.token,
+    ])
+  ).rows[0].v;
+  expect(workspace.actor.role).toBe("doctor");
 });

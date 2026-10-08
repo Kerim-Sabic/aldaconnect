@@ -46,9 +46,9 @@ export const modules = [
   {
     id: "labs",
     name: "Nalazi i zdravstvena podrška",
-    description: "Evidencija i odgovorno stručno praćenje.",
+    description: "Testni PDF nalazi i pregled ovlaštenog doktora.",
     category: "Zdravlje i podrška",
-    available: false,
+    available: true,
   },
   {
     id: "medications",

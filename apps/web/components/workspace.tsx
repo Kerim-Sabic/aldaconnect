@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Onboarding from "./onboarding";
 import CycleDiary from "./cycle-diary";
 import MedicationRecords from "./medication-records";
+import LabRecords from "./lab-records";
+import DoctorWorkspace from "./doctor-workspace";
 import AdminWorkspace, {
   PasswordForm,
   type AdminData,
@@ -747,19 +749,19 @@ function WorkspaceView({
     );
   if (data.actor.role === "doctor")
     return (
-      <main className="doctor-records">
-        {previewId && (
-          <button onClick={() => setPreviewId(null)}>
-            Vratite se u administraciju
-          </button>
+      <DoctorWorkspace
+        name={data.actor.name}
+        readOnly={Boolean(previewId)}
+        logout={logout}
+        back={() => setPreviewId(null)}
+      >
+        {data.usernameAccount && !previewId && (
+          <details>
+            <summary>Promjena lozinke</summary>
+            <PasswordForm />
+          </details>
         )}
-        {data.usernameAccount && !previewId && <PasswordForm />}
-        <MedicationRecords
-          key={data.actor.id}
-          readOnly={Boolean(previewId)}
-          logout={logout}
-        />
-      </main>
+      </DoctorWorkspace>
     );
   const nav = expert
     ? [
@@ -804,6 +806,8 @@ function WorkspaceView({
       label: "Stručna evidencija",
       icon: ShieldCheck,
     });
+  if (!expert && (selected.includes("labs") || previewId))
+    nav.push({ id: "labs", label: "Nalazi", icon: Heart });
   const title =
     nav.find((n) => n.id === view)?.label ??
     (view === "settings"
@@ -1605,6 +1609,11 @@ function WorkspaceView({
               />
             )}
 
+          {view === "labs" &&
+            !expert &&
+            (selected.includes("labs") || previewId) && (
+              <LabRecords key={data.actor.id} readOnly={Boolean(previewId)} />
+            )}
           {view === "cycle" &&
             (selected.includes("cycle") || previewId) &&
             !expert && (
@@ -2313,6 +2322,7 @@ function WorkspaceView({
                     onClick={async () => {
                       let cycleEntries: unknown[] = [];
                       let medicationRecords: unknown = null;
+                      let labRecords: unknown = null;
                       if (data.actor.role === "client") {
                         try {
                           const response = await fetch("/api/cycle", {
@@ -2327,9 +2337,20 @@ function WorkspaceView({
                           const records = await medications.json();
                           if (!medications.ok) throw new Error(records.error);
                           medicationRecords = records;
+                          const labs = await fetch("/api/labs", {
+                            cache: "no-store",
+                          });
+                          const labData = await labs.json();
+                          if (!labs.ok) throw new Error(labData.error);
+                          labRecords = {
+                            documents: labData.documents,
+                            reviews: labData.reviews,
+                            team: labData.team,
+                            files: "PDF datoteke preuzmite zasebno iz Nalaza.",
+                          };
                         } catch {
                           setToast(
-                            "Izvoz nije završen. Dnevnik ciklusa nije dostupan; pokušajte ponovo.",
+                            "Izvoz nije završen. Privatna evidencija nije dostupna; pokušajte ponovo.",
                           );
                           return;
                         }
@@ -2346,6 +2367,7 @@ function WorkspaceView({
                               diary: data.diary,
                               cycleEntries,
                               medicationRecords,
+                              labRecords,
                             },
                             null,
                             2,
