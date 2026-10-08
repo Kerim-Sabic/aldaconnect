@@ -1,5 +1,12 @@
 "use client";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
+import { focusScope } from "./focus-scope";
 import Brand from "./brand";
 import ThemeControl from "./theme-control";
 import dynamic from "next/dynamic";
@@ -178,7 +185,7 @@ const dateLabel = () => {
   return (
     days[part("weekday")] +
     ", " +
-    part("day") +
+    Number(part("day")) +
     ". " +
     months[Number(part("month")) - 1]
   );
@@ -222,6 +229,36 @@ function WorkspaceView({
   const [cloud, setCloud] = useState(false);
   const [inviteToken, setInviteToken] = useState("");
   const [inviteLink, setInviteLink] = useState("");
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.getElementById("main")?.focus({ preventScroll: true });
+  }, [view]);
+  const dialogRef = useRef<HTMLElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+  const dialogOpen = Boolean(
+    data && ((!data.actor.onboarded && !previewId) || modal),
+  );
+  const canDismissDialog = Boolean(data?.actor.onboarded);
+  useEffect(() => {
+    if (!dialogOpen || !dialogRef.current) return;
+    return focusScope(dialogRef.current, () => {
+      if (canDismissDialog) setModal(null);
+    });
+  }, [dialogOpen, canDismissDialog]);
+  useEffect(() => {
+    if (!mobile || !drawerRef.current) return;
+    const media = matchMedia("(max-width: 768px)");
+    if (!media.matches) return;
+    const release = focusScope(drawerRef.current, () => setMobile(false));
+    const resized = () => {
+      if (!media.matches) setMobile(false);
+    };
+    media.addEventListener("change", resized);
+    return () => {
+      release();
+      media.removeEventListener("change", resized);
+    };
+  }, [mobile]);
   useEffect(() => {
     document.documentElement.dataset.updateBlocked = String(
       busy || queue.length > 0 || view === "workout" || Boolean(modal),
@@ -523,11 +560,14 @@ function WorkspaceView({
           <Brand />
         </div>
         <main className="entry-grid">
-          <section>
+          <section className="entry-intro">
+            <span className="entry-kicker">
+              <span className="status-dot" /> VAŠ PROSTOR ZA NAPREDAK
+            </span>
             <h1>
-              Zajedno smo jači.
+              Vaš dan.
               <br />
-              <em>Sve je prilagođeno vama.</em>
+              <em>Vaš tempo.</em>
             </h1>
             <p className="entry-description">
               Trening, svakodnevne navike i ljudi koji vam pomažu da
@@ -544,8 +584,13 @@ function WorkspaceView({
                 <Heart size={18} /> Vaš vlastiti tempo
               </span>
             </div>
+            <div
+              className="entry-photograph"
+              role="img"
+              aria-label="Mirno osvijetljen prostor za trening s girjom"
+            />
           </section>
-          <section className="entry-panel">
+          <section className="entry-panel" aria-label="Pristup vašem računu">
             <div className="tabs">
               {(cloud
                 ? (["login", "register"] as const)
@@ -553,6 +598,7 @@ function WorkspaceView({
               ).map((x) => (
                 <button
                   className={auth === x ? "active" : ""}
+                  aria-pressed={auth === x}
                   key={x}
                   onClick={() => setAuth(x)}
                 >
@@ -567,11 +613,7 @@ function WorkspaceView({
             {auth === "demo" ? (
               <>
                 <span className="eyebrow">ZAVIRITE U APLIKACIJU</span>
-                <h2>
-                  Dvije perspektive.
-                  <br />
-                  Jedan zajednički plan.
-                </h2>
+                <h2>Dobro došli.</h2>
                 <p>
                   Istražite izmišljene profile. Promjene se čuvaju lokalno na
                   ovom računaru.
@@ -845,98 +887,144 @@ function WorkspaceView({
           ? "Trening"
           : "Vaš prostor");
   const client = data.clients.find((c) => c.id === clientId);
-  const PlanCard = () =>
-    plan ? (
-      <div className="workout-feature">
-        <div className="workout-main">
-          <div>
-            <h2>
-              {plan.title.split(" · ")[0]}
-              <br />
-              <em>{plan.title.split(" · ")[1] ?? "Vaš sljedeći korak"}</em>
-            </h2>
-            <p>{plan.reason}</p>
-            <div className="workout-meta">
-              <span>
-                <Clock size={15} /> 45–55 min
-              </span>
-              <span>{plan.exercises.length} vježbi</span>
-              <span>Teretana</span>
-            </div>
-            <button
-              className="peach-button"
-              disabled={busy}
-              onClick={async () => {
-                try {
-                  if (!session)
-                    await mutate(
-                      "startSession",
-                      { planId: plan.id },
-                      "Trening je započet.",
-                    );
-                  changeView("workout");
-                } catch {}
-              }}
-            >
-              {session ? "Nastavite trening" : "Započnite trening"}
-              <ArrowUpRight size={18} />
-            </button>
-          </div>
-          <div className="workout-sequence" aria-label="Vježbe u planu">
-            {plan.exercises.slice(0, 3).map((exercise, index) => (
-              <div key={exercise.id}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <strong>{exercise.name}</strong>
-              </div>
-            ))}
-            {plan.exercises.length > 3 && (
-              <small>+ {plan.exercises.length - 3} u vašem planu</small>
-            )}
-          </div>
-        </div>
-        <div className="feature-footer">
-          <span>
-            <span className="avatar tiny sage">
-              {initials(plan.author_name)}
+  const descriptions: Record<string, string> = {
+    today: "Vaš trening i svakodnevne navike, na jednom mjestu.",
+    queue: "Izvještaji, klijenti i sljedeći koraci.",
+    settings: "Prilagodite module i postavke svog prostora.",
+    clients: "Planovi, izvještaji i poruke vaših klijenata.",
+    workout: "Serije se čuvaju tokom treninga. Nastavite svojim tempom.",
+    plan: "Vaš dodijeljeni plan i zabilježeni treninzi.",
+    progress: "Pregled vaših treninga, serija i izvještaja.",
+    team: "Stručnjaci s kojima ste povezani.",
+    messages: expert
+      ? "Razgovori s vašim klijentima."
+      : "Razgovori s vašim timom.",
+    nutrition: "Obroci, hidratacija i dnevne bilješke.",
+    cycle: "Vaše bilješke, dostupne samo vama.",
+    medications: "Evidencija s autorima i historijom izmjena.",
+    labs: "Testni nalazi i pregled uz vašu dozvolu.",
+    calendar: "Pregled vaše sedmice.",
+    library: "Vježbe i programi za pripremu planova.",
+  };
+  const planCard = plan ? (
+    <div className="workout-feature">
+      <div className="workout-caption">
+        <span>
+          <Dumbbell size={17} /> VAŠ TRENING
+        </span>
+        <span className="workout-version">Verzija {plan.version}</span>
+      </div>
+      <div className="workout-main">
+        <div>
+          <h2>
+            {plan.title.split(" · ")[0]}
+            <br />
+            <em>{plan.title.split(" · ")[1] ?? "Vaš sljedeći korak"}</em>
+          </h2>
+          <p>{plan.reason}</p>
+          <div className="workout-meta">
+            <span>
+              <Clock size={15} /> 45–55 min
             </span>
-            Plan pripremio/la {first(plan.author_name)}
-          </span>
+            <span>{plan.exercises.length} vježbi</span>
+            <span>Teretana</span>
+          </div>
+          <button
+            className="peach-button"
+            disabled={busy}
+            onClick={async () => {
+              try {
+                if (!session)
+                  await mutate(
+                    "startSession",
+                    { planId: plan.id },
+                    "Trening je započet.",
+                  );
+                changeView("workout");
+              } catch {}
+            }}
+          >
+            {session ? "Nastavite trening" : "Započnite trening"}
+            <ArrowUpRight size={18} />
+          </button>
+        </div>
+        <div
+          className="session-ring"
+          role="img"
+          aria-label={`${completed} od ${total} serija zabilježeno`}
+        >
+          <svg viewBox="0 0 140 140" aria-hidden="true">
+            <circle className="ring-track" cx="70" cy="70" r="59" />
+            <circle
+              className="ring-value"
+              cx="70"
+              cy="70"
+              r="59"
+              pathLength="100"
+              strokeDasharray={`${total ? Math.min(100, (completed / total) * 100) : 0} 100`}
+            />
+          </svg>
           <span>
-            Verzija {plan.version} <Check size={14} />
+            <strong>
+              {completed}
+              <small>/{total}</small>
+            </strong>
+            <span>serija</span>
           </span>
         </div>
       </div>
-    ) : (
-      <div className="empty-plan">
-        <Dumbbell size={32} />
-        <h2>Ovdje počinje vaš sljedeći korak.</h2>
-        <p>
-          {data.actor.onboarded
-            ? data.team.some((person) => person.role === "trainer")
-              ? "Plan još nije dodijeljen. Javite se svom treneru za sljedeći korak."
-              : "Vaše postavke su sačuvane. Povežite se s trenerom za individualni plan."
-            : "Odaberite šta vam je važno i postavite prve korake."}
-        </p>
-        <button
-          className="primary"
-          onClick={() =>
-            data.actor.onboarded &&
-            data.team.some((person) => person.role === "trainer")
-              ? changeView("messages")
-              : setModal({
-                  kind: data.actor.onboarded ? "acceptInvite" : "onboard",
-                })
-          }
-        >
-          {data.actor.onboarded
-            ? data.team.some((person) => person.role === "trainer")
-              ? "Pošaljite poruku treneru"
-              : "Prihvatite poziv"
-            : "Uredite moj prostor"}
-          <ArrowRight size={16} />
-        </button>
+      <div className="workout-sequence" aria-label="Vježbe u planu">
+        {plan.exercises.slice(0, 3).map((exercise, index) => (
+          <div key={exercise.id}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{exercise.name}</strong>
+          </div>
+        ))}
+        {plan.exercises.length > 3 && (
+          <small>+ {plan.exercises.length - 3} u vašem planu</small>
+        )}
       </div>
-    );
+      <div className="feature-footer">
+        <span>
+          <span className="avatar tiny sage">{initials(plan.author_name)}</span>
+          Plan pripremio/la {first(plan.author_name)}
+        </span>
+        <span>
+          Verzija {plan.version} <Check size={14} />
+        </span>
+      </div>
+    </div>
+  ) : (
+    <div className="empty-plan">
+      <Dumbbell size={32} />
+      <h2>Ovdje počinje vaš sljedeći korak.</h2>
+      <p>
+        {data.actor.onboarded
+          ? data.team.some((person) => person.role === "trainer")
+            ? "Plan još nije dodijeljen. Javite se svom treneru za sljedeći korak."
+            : "Vaše postavke su sačuvane. Povežite se s trenerom za individualni plan."
+          : "Odaberite šta vam je važno i postavite prve korake."}
+      </p>
+      <button
+        className="primary"
+        onClick={() =>
+          data.actor.onboarded &&
+          data.team.some((person) => person.role === "trainer")
+            ? changeView("messages")
+            : setModal({
+                kind: data.actor.onboarded ? "acceptInvite" : "onboard",
+              })
+        }
+      >
+        {data.actor.onboarded
+          ? data.team.some((person) => person.role === "trainer")
+            ? "Pošaljite poruku treneru"
+            : "Prihvatite poziv"
+          : "Uredite moj prostor"}
+        <ArrowRight size={16} />
+      </button>
+    </div>
+  );
 
   return (
     <div className="app">
@@ -952,7 +1040,11 @@ function WorkspaceView({
       <a className="skip" href="#main">
         Preskočite na sadržaj
       </a>
-      <aside className={"sidebar " + (mobile ? "open" : "")}>
+      <aside
+        ref={drawerRef}
+        tabIndex={-1}
+        className={"sidebar " + (mobile ? "open" : "")}
+      >
         <a
           className="brand"
           href="/"
@@ -974,8 +1066,16 @@ function WorkspaceView({
           {nav.map((n) => (
             <button
               key={n.id}
-              className={view === n.id ? "nav-item active" : "nav-item"}
-              aria-current={view === n.id ? "page" : undefined}
+              className={
+                view === n.id || (view === "workout" && n.id === "plan")
+                  ? "nav-item active"
+                  : "nav-item"
+              }
+              aria-current={
+                view === n.id || (view === "workout" && n.id === "plan")
+                  ? "page"
+                  : undefined
+              }
               onClick={() => changeView(n.id)}
             >
               <n.icon size={19} />
@@ -987,17 +1087,6 @@ function WorkspaceView({
             </button>
           ))}
         </nav>
-        <div className="sidebar-note">
-          <span className="mini-label">
-            {expert ? "VIŠE FOKUSA" : "VAŠ PUT DO SNAGE"}
-          </span>
-          <p>
-            {expert
-              ? "Dobar stručni rad počinje jasnim sljedećim korakom."
-              : "Mali koraci. Dosljedan trud. Stvaran napredak."}
-          </p>
-          <div className="thin-line" />
-        </div>
         <div className="sidebar-bottom">
           <button
             className={"nav-item " + (view === "settings" ? "active" : "")}
@@ -1037,6 +1126,7 @@ function WorkspaceView({
               className="icon-button mobile-menu"
               onClick={() => setMobile(!mobile)}
               aria-label="Otvorite navigaciju"
+              aria-expanded={mobile}
             >
               <Menu size={22} />
             </button>
@@ -1082,32 +1172,20 @@ function WorkspaceView({
             </span>
           </div>
         </header>
-        <main id="main" className="main">
+        <main id="main" className="main" tabIndex={-1}>
           <div className="page-heading">
             <div>
               <h1>
                 {view === "today"
                   ? `${language === "bs" ? "Dobar dan" : "Dobar dan"}, ${first(data.actor.name)}.`
                   : view === "queue"
-                    ? `Pregledan dan, ${first(data.actor.name)}.`
+                    ? `Dobar dan, ${first(data.actor.name)}.`
                     : view === "workout"
-                      ? "Svako ponavljanje ima smisla."
+                      ? "Vaš trening"
                       : title}
               </h1>
               <time className="page-date">{dateLabel()}</time>
-              <p>
-                {view === "today"
-                  ? "Malo strukture. Malo podrške. Dan koji vas vodi naprijed."
-                  : view === "queue"
-                    ? "Pravi zadaci, pravim redom. Usmjerite pažnju tamo gdje je potrebna."
-                    : view === "settings"
-                      ? "Prilagodite ovaj prostor sebi. Postavke možete promijeniti bilo kada."
-                      : view === "clients"
-                        ? "Zajednička slika. Individualan pristup."
-                        : view === "workout"
-                          ? "Krećite se svojim tempom. Serije se čuvaju tokom treninga."
-                          : "Vaš plan i ljudi koji vas podržavaju, na jednom mjestu."}
-              </p>
+              <p>{descriptions[view]}</p>
             </div>
             {view === "today" ? (
               <button
@@ -1134,10 +1212,14 @@ function WorkspaceView({
                     <Sun size={21} />
                   </span>
                   <span>
-                    <strong>Danas je pravi trenutak za početak.</strong>
+                    <strong>
+                      {session
+                        ? "Trening je u toku"
+                        : "Spremni za vaš sljedeći trening"}
+                    </strong>
                     <small>
                       {completed > 0
-                        ? `${completed} zabilježenih serija. Nastavite svojim tempom.`
+                        ? `${completed} / ${total} serija zabilježeno.`
                         : "Vaš plan vas čeka."}
                     </small>
                   </span>
@@ -1151,7 +1233,35 @@ function WorkspaceView({
               </div>
               <div className="today-grid">
                 <section>
-                  {selected.includes("training") && <PlanCard />}
+                  {selected.includes("training") && planCard}
+                  <div className="activity-summary" aria-label="Vaša aktivnost">
+                    <div>
+                      <span className="summary-icon">
+                        <Dumbbell size={18} />
+                      </span>
+                      <strong>
+                        {data.sessions.filter((s) => s.completed_at).length}
+                      </strong>
+                      <span>Završeni treninzi</span>
+                    </div>
+                    <div>
+                      <span className="summary-icon">
+                        <Activity size={18} />
+                      </span>
+                      <strong>
+                        {completed}
+                        <small> / {total}</small>
+                      </strong>
+                      <span>Serije u planu</span>
+                    </div>
+                    <div>
+                      <span className="summary-icon">
+                        <ClipboardList size={18} />
+                      </span>
+                      <strong>{data.checkins.length}</strong>
+                      <span>Vaši izvještaji</span>
+                    </div>
+                  </div>
                   <div className="section-title">
                     <h2>Svakodnevne navike</h2>
                     <button onClick={() => changeView("settings")}>
@@ -1167,10 +1277,10 @@ function WorkspaceView({
                         <span className="round-icon peach-soft">
                           <Leaf size={22} />
                         </span>
-                        <strong>Ishrana koja prati vaš dan</strong>
+                        <strong>Ishrana</strong>
                         <p>
-                          {data.diary.filter((d) => d.kind === "meal").length}{" "}
-                          obroka zabilježeno · ne morate biti savršeni
+                          Zabilježeni obroci:{" "}
+                          {data.diary.filter((d) => d.kind === "meal").length}
                         </p>
                         <span>
                           Dodajte obrok <ArrowUpRight size={16} />
@@ -1185,7 +1295,7 @@ function WorkspaceView({
                         <span className="round-icon sage-soft">
                           <Heart size={22} />
                         </span>
-                        <strong>Poslušajte svoje tijelo</strong>
+                        <strong>Oporavak</strong>
                         <p>San, energija i kako se danas osjećate</p>
                         <span>
                           Kako se osjećate? <ArrowUpRight size={16} />
@@ -1197,7 +1307,7 @@ function WorkspaceView({
                 <aside className="right-rail">
                   <section className="week-card">
                     <div className="section-title">
-                      <h2>Sedmica u pokretu</h2>
+                      <h2>Ove sedmice</h2>
                       <CalendarDays size={17} />
                     </div>
                     <div className="week-days">
@@ -1289,15 +1399,6 @@ function WorkspaceView({
                       <ArrowUpRight size={15} />
                     </button>
                   </section>
-                  <div className="quiet-quote">
-                    <p>
-                      Ne morate uraditi
-                      <br />
-                      sve.
-                      <br />
-                      <em>Samo sljedeći korak.</em>
-                    </p>
-                  </div>
                 </aside>
               </div>
             </>
@@ -1476,7 +1577,7 @@ function WorkspaceView({
                   </aside>
                 </div>
               ) : (
-                <PlanCard />
+                { planCard }
               )}
             </>
           )}
@@ -1539,7 +1640,7 @@ function WorkspaceView({
                   </footer>
                 </div>
               ) : (
-                <PlanCard />
+                { planCard }
               )}
               {view === "calendar" && (
                 <div className="information">
@@ -1905,7 +2006,11 @@ function WorkspaceView({
                         <strong>{t.client_name}</strong>
                       </div>
                       <div>
-                        <strong>{t.title}</strong>
+                        <strong>
+                          {t.title === "Weekly check-in ready to review"
+                            ? "Sedmični izvještaj je spreman za pregled"
+                            : t.title}
+                        </strong>
                         <small>
                           {t.kind === "checkin"
                             ? "Kontekst prije narednog plana."
@@ -2239,7 +2344,7 @@ function WorkspaceView({
                 </section>
               )}
               <div className="settings-layout">
-                <section>
+                <section className="settings-card">
                   <div className="section-title">
                     <div>
                       <span className="eyebrow">VAŠ PROSTOR, VAŠ IZBOR</span>
@@ -2454,7 +2559,11 @@ function WorkspaceView({
             <button
               key={n.id}
               onClick={() => changeView(n.id)}
-              aria-current={view === n.id ? "page" : undefined}
+              aria-current={
+                view === n.id || (view === "workout" && n.id === "plan")
+                  ? "page"
+                  : undefined
+              }
             >
               <n.icon size={21} />
               <span>{n.id === "queue" ? "Zadaci" : n.label}</span>
@@ -2463,6 +2572,15 @@ function WorkspaceView({
         <button
           onClick={() => setMobile(!mobile)}
           aria-expanded={mobile}
+          aria-current={
+            !(
+              expert
+                ? ["queue", "clients", "calendar", "messages"]
+                : ["today", "plan", "progress", "messages", "workout"]
+            ).includes(view)
+              ? "page"
+              : undefined
+          }
           aria-label="Više opcija"
         >
           <Menu size={21} />
@@ -2477,6 +2595,8 @@ function WorkspaceView({
           <section
             role="dialog"
             aria-modal="true"
+            ref={dialogRef}
+            tabIndex={-1}
             aria-labelledby="dialog-title"
             className={"modal " + (modal?.kind === "plan" ? "wide" : "")}
             onClick={(e) => e.stopPropagation()}

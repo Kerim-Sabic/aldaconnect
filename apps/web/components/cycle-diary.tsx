@@ -112,7 +112,7 @@ export default function CycleDiary({
       <div className="section-title">
         <div>
           <span className="eyebrow">VAŠ PRIVATNI DNEVNIK</span>
-          <h2>Ciklus i simptomi</h2>
+          <h2>Privatni dnevnik</h2>
         </div>
       </div>
       <p className="muted">

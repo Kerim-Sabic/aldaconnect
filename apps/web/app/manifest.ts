@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#f6f3ed",
-    theme_color: "#292620",
+    background_color: "#f5f6f8",
+    theme_color: "#f5f6f8",
     icons: [
       {
         src: "/icons/icon-192.png",

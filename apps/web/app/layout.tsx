@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import "./club.css";
+import "./interface.css";
 import InstallApp from "@/components/install-app";
 const themeScript = `(function(){try{var t=localStorage.getItem('alda-theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})()`;
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f6f3ed",
+  themeColor: "#f5f6f8",
 };
 export const metadata: Metadata = {
   title: "Alda Connect · Vaš prostor",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Alda Connect",
   },
-  icons: { apple: "/icons/apple-touch-icon.png" },
+  icons: { icon: "/icons/mark.svg", apple: "/icons/apple-touch-icon.png" },
 };
 export default function RootLayout({
   children,

@@ -18,7 +18,7 @@ Bosnia and Herzegovina / Balkans first. Clients use phones between exercises and
 Existing Next.js/React application, Supabase backend and Vercel hosting. Preserve login, general onboarding, invitations, training sessions, set logging, nutrition/recovery diary, messages, private cycle diary, attributed medication/supplement/PED records and synthetic labs. Enforce existing server permissions. Light/dark modes, mobile-first navigation and installed-app update delivery are requested. Full product remains in development; professional verification, clinical activation, billing and deferred modules must not be depicted as complete. No invented metrics, credentials, testimonials or health outcomes.
 
 ## Brand Commitments
-Name Alda Connect; Bosnian product language, English conversation with the user. This request replaces the incumbent visual design. User approved a mix of previews 5 (Private Health Club), 1 (Club Identity) and 6 (Precision Performance): ivory, espresso and restrained bronze with editorial greetings and precise familiar controls.
+Name Alda Connect; Bosnian product language, English conversation with the user. The latest request replaces the previous Private Health Club direction with a restrained modern interface: soft neutral surfaces, native system typography, evergreen accents, useful recorded progress and clear daily actions. Preserve the existing product and permissions. The user requested the finished redesign be pushed to GitHub.
 
 ## Evidence on Hand
 Authoritative source README, project plans and BUILD-STATUS.md. Existing screenshots in project deliverables. Synthetic lab fixture is visibly marked; never present it as a real clinical report.

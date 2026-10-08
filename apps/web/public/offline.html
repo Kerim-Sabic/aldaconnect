@@ -1,1 +1,142 @@
-<!doctype html><html lang="bs"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#292620"><title>Alda Connect · Bez veze</title><style>body{margin:0;background:#f6f3ed;color:#292620;font:18px/1.6 system-ui;display:grid;min-height:100vh;place-items:center}main{max-width:460px;padding:32px}h1{font-size:42px;line-height:1.1}a{display:inline-block;background:#292620;color:white;padding:12px 22px;border-radius:12px;text-decoration:none}small{display:block;margin-top:24px}</style><main><b>ALDA CONNECT</b><h1>Vratimo se kada budete povezani.</h1><p>Za učitavanje vašeg prostora potrebna je internetska veza. Vaši podaci ostaju sačuvani na serveru.</p><a href="/">Pokušajte ponovo</a><small>Serije zabilježene tokom prekida veze u već otvorenom treningu čekaju sinhronizaciju nakon ponovnog povezivanja i prijave istim računom.</small></main></html>
+<!doctype html>
+<html lang="bs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#f5f6f8" />
+    <title>Alda Connect · Bez veze</title>
+    <link rel="icon" href="/icons/mark.svg" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --paper: #f5f6f8;
+        --surface: #fff;
+        --ink: #1d2228;
+        --muted: #666f78;
+        --line: #e2e5e9;
+        --accent: #246749;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --paper: #111315;
+          --surface: #1c1f22;
+          --ink: #f0f3f5;
+          --muted: #a1a9b1;
+          --line: #33393e;
+          --accent: #a4dec0;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font:
+          16px/1.65 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        display: grid;
+        min-height: 100dvh;
+        place-items: center;
+        padding: 24px;
+      }
+      main {
+        width: 100%;
+        max-width: 480px;
+        padding: 36px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--surface);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 650;
+        font-size: 21px;
+        letter-spacing: -0.04em;
+      }
+      .brand span {
+        color: var(--muted);
+        font-weight: 400;
+      }
+      h1 {
+        font-size: 34px;
+        font-weight: 650;
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+        margin: 36px 0 18px;
+      }
+      p,
+      small {
+        color: var(--muted);
+      }
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--accent);
+        color: var(--surface);
+        padding: 12px 20px;
+        min-height: 48px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 12px;
+      }
+      a:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 4px;
+      }
+      small {
+        display: block;
+        margin-top: 28px;
+        font-size: 13px;
+      }
+      @media (max-width: 400px) {
+        main {
+          padding: 28px 24px;
+        }
+        h1 {
+          font-size: 30px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="brand">
+        <svg
+          width="36"
+          height="36"
+          viewBox="0 0 28 28"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M5 21 12 6a2.2 2.2 0 0 1 4 0l7 15M9 16h10"
+            stroke="currentColor"
+            stroke-width="2.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          /></svg
+        >alda<span>connect</span>
+      </div>
+      <h1>Trenutno ste bez veze.</h1>
+      <p>
+        Za učitavanje vašeg prostora potrebna je internetska veza. Vaši podaci
+        ostaju sačuvani na serveru.
+      </p>
+      <a href="/">Pokušajte ponovo</a
+      ><small
+        >Serije zabilježene tokom prekida veze u već otvorenom treningu čekaju
+        sinhronizaciju nakon ponovnog povezivanja i prijave istim
+        računom.</small
+      >
+    </main>
+  </body>
+</html>

@@ -49,6 +49,7 @@ export default function AdminWorkspace({
             <button
               key={id}
               className={view === id ? "active" : ""}
+              aria-current={view === id ? "page" : undefined}
               onClick={() => setView(id)}
             >
               {label}
