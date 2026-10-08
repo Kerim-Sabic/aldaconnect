@@ -3383,3 +3383,86 @@ hr {
   letter-spacing: 0.06em;
   color: #6e7d66;
 }
+
+.cycle-form {
+  display: grid;
+  gap: 18px;
+  margin: 24px 0;
+}
+.cycle-form label {
+  display: grid;
+  gap: 8px;
+}
+.cycle-form input:not([type="checkbox"]),
+.cycle-form select,
+.cycle-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border, #dce1d7);
+  border-radius: 10px;
+  background: var(--surface, #fffefa);
+  color: inherit;
+  font: inherit;
+}
+.cycle-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.cycle-form fieldset {
+  border: 1px solid var(--border, #dce1d7);
+  border-radius: 12px;
+  padding: 16px;
+}
+.cycle-symptoms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+.cycle-symptoms label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cycle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.cycle-actions button {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #b9c8b9;
+  background: #edf1e8;
+  color: #29463c;
+  cursor: pointer;
+}
+.cycle-actions button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.cycle-diary details {
+  padding: 20px;
+  border: 1px solid #dce1d7;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.medication-access {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+}
+.doctor-records {
+  max-width: 1000px;
+  padding: 36px 24px;
+  margin: auto;
+}
+
+.sidebar {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.cycle-diary .progress-panel {
+  overflow-wrap: anywhere;
+}

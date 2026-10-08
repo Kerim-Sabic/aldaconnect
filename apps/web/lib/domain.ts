@@ -32,9 +32,9 @@ export const modules = [
   {
     id: "cycle",
     name: "Ciklus i simptomi",
-    description: "Privatno praćenje prilagođeno vašem iskustvu.",
+    description: "Privatni dnevnik krvarenja, simptoma i bilješki.",
     category: "Zdravlje i podrška",
-    available: false,
+    available: true,
   },
   {
     id: "rehab",
@@ -52,10 +52,11 @@ export const modules = [
   },
   {
     id: "medications",
-    name: "Lijekovi i suplementi",
-    description: "Povjerljiva evidencija i stručni pregled.",
+    name: "Lijekovi, suplementi i PED",
+    description:
+      "Evidencija uz doktora i trenera, s autorima i historijom izmjena.",
     category: "Zdravlje i podrška",
-    available: false,
+    available: true,
   },
   {
     id: "community",

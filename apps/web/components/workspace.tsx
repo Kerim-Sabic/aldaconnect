@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Onboarding from "./onboarding";
+import CycleDiary from "./cycle-diary";
+import MedicationRecords from "./medication-records";
 import AdminWorkspace, {
   PasswordForm,
   type AdminData,
@@ -743,6 +745,22 @@ function WorkspaceView({
     return (
       <AdminWorkspace data={data} preview={setPreviewId} logout={logout} />
     );
+  if (data.actor.role === "doctor")
+    return (
+      <main className="doctor-records">
+        {previewId && (
+          <button onClick={() => setPreviewId(null)}>
+            Vratite se u administraciju
+          </button>
+        )}
+        {data.usernameAccount && !previewId && <PasswordForm />}
+        <MedicationRecords
+          key={data.actor.id}
+          readOnly={Boolean(previewId)}
+          logout={logout}
+        />
+      </main>
+    );
   const nav = expert
     ? [
         { id: "queue", label: "Radni zadaci", icon: ClipboardList },
@@ -778,6 +796,14 @@ function WorkspaceView({
           icon: MessageCircle,
         },
       ];
+  if (!expert && (selected.includes("cycle") || previewId))
+    nav.push({ id: "cycle", label: "Ciklus i simptomi", icon: Heart });
+  if (expert || selected.includes("medications") || previewId)
+    nav.push({
+      id: "medications",
+      label: "Stručna evidencija",
+      icon: ShieldCheck,
+    });
   const title =
     nav.find((n) => n.id === view)?.label ??
     (view === "settings"
@@ -1568,6 +1594,21 @@ function WorkspaceView({
             </>
           )}
 
+          {view === "medications" &&
+            (expert || selected.includes("medications")) && (
+              <MedicationRecords
+                key={data.actor.id + clientId}
+                clientId={clientId || undefined}
+                readOnly={Boolean(previewId)}
+              />
+            )}
+
+          {view === "cycle" &&
+            (selected.includes("cycle") || previewId) &&
+            !expert && (
+              <CycleDiary key={data.actor.id} readOnly={Boolean(previewId)} />
+            )}
+
           {view === "progress" && (
             <>
               <div className="metric-grid">
@@ -2266,7 +2307,31 @@ function WorkspaceView({
                   </button>
                   <button
                     className="secondary full"
-                    onClick={() => {
+                    disabled={Boolean(previewId)}
+                    onClick={async () => {
+                      let cycleEntries: unknown[] = [];
+                      let medicationRecords: unknown = null;
+                      if (data.actor.role === "client") {
+                        try {
+                          const response = await fetch("/api/cycle", {
+                            cache: "no-store",
+                          });
+                          const result = await response.json();
+                          if (!response.ok) throw new Error(result.error);
+                          cycleEntries = result.entries;
+                          const medications = await fetch("/api/medications", {
+                            cache: "no-store",
+                          });
+                          const records = await medications.json();
+                          if (!medications.ok) throw new Error(records.error);
+                          medicationRecords = records;
+                        } catch {
+                          setToast(
+                            "Izvoz nije završen. Dnevnik ciklusa nije dostupan; pokušajte ponovo.",
+                          );
+                          return;
+                        }
+                      }
                       const blob = new Blob(
                         [
                           JSON.stringify(
@@ -2277,6 +2342,8 @@ function WorkspaceView({
                               logs: data.logs,
                               checkins: data.checkins,
                               diary: data.diary,
+                              cycleEntries,
+                              medicationRecords,
                             },
                             null,
                             2,

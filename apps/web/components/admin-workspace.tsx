@@ -140,7 +140,7 @@ export default function AdminWorkspace({
                           : "Uvodni koraci nisu završeni"}
                       </small>
                     </div>
-                    {["client", "trainer"].includes(u.role) ? (
+                    {["client", "trainer", "doctor"].includes(u.role) ? (
                       <button
                         className="text-link"
                         onClick={() => preview(u.id)}
@@ -156,8 +156,7 @@ export default function AdminWorkspace({
                 ))}
             </div>
             <p className="muted">
-              Prostori ljekara, nutricioniste i fizioterapeuta još su u
-              pripremi.
+              Prostori nutricioniste i fizioterapeuta još su u pripremi.
             </p>
           </section>
         )}

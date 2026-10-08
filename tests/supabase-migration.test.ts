@@ -51,6 +51,15 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  await db.exec(
+    readFileSync("supabase/migrations/202610080007_private_cycle.sql", "utf8"),
+  );
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/202610080008_medication_records.sql",
+      "utf8",
+    ),
+  );
   for (const [id, name] of [
     [member, "Test Member"],
     [other, "Other Member"],
@@ -71,6 +80,207 @@ beforeAll(async () => {
 });
 afterAll(async () => {
   await db.close();
+});
+
+it("requires client consent for both trainer and doctor edits and preserves attributed versions", async () => {
+  const doctor = "d0000000-0000-4000-8000-000000000001";
+  await db.query(
+    "insert into auth.users values($1,'doctor@example.test','{\"name\":\"Test Doctor\"}')",
+    [doctor],
+  );
+  await db.query("update public.users set role='doctor' where id=$1", [doctor]);
+  await db.query(
+    "insert into public.relationships(id,client_id,expert_id) values('doctor-assignment',$1,$2)",
+    [member, doctor],
+  );
+  const content = {
+    category: "ped",
+    name: "Synthetic disclosure",
+    dose: "Recorded only",
+    route: "",
+    frequency: "",
+    timing: "",
+    note: "No real treatment",
+    status: "active",
+    start: "",
+    end: "",
+  };
+  const id = "d1000000-0000-4000-8000-000000000001";
+  await act(trainer);
+  await expect(
+    db.query("select public.medications_action('save',$1)", [
+      { id, version: 0, clientId: member, content },
+    ]),
+  ).rejects.toThrow("odobrio");
+  await act(doctor);
+  await expect(
+    db.query("select public.medications_action('save',$1)", [
+      { id, version: 0, clientId: member, content },
+    ]),
+  ).rejects.toThrow("odobrio");
+  await act(member);
+  for (const expertId of [trainer, doctor])
+    await db.query("select public.medications_action('grant',$1)", [
+      { expertId, granted: true },
+    ]);
+  await act(trainer);
+  await db.query("select public.medications_action('save',$1)", [
+    { id, version: 0, clientId: member, content },
+  ]);
+  await act(doctor);
+  await db.query("select public.medications_action('save',$1)", [
+    {
+      id,
+      version: 1,
+      clientId: member,
+      content: { ...content, note: "Doctor changed the disclosure note" },
+    },
+  ]);
+  await expect(
+    db.query("select public.medications_action('save',$1)", [
+      { id, version: 1, clientId: member, content },
+    ]),
+  ).rejects.toThrow("međuvremenu");
+  const versions = (
+    await db.query<{ actor_role: string; version: number }>(
+      "select actor_role,version from public.medication_versions where record_id=$1 order by version",
+      [id],
+    )
+  ).rows;
+  expect(versions).toEqual([
+    { actor_role: "trainer", version: 1 },
+    { actor_role: "doctor", version: 2 },
+  ]);
+  await db.query("select public.medications_action('remove',$1)", [
+    { id, version: 2, clientId: member },
+  ]);
+  await db.query("select public.medications_action('restore',$1)", [
+    { id, version: 3, clientId: member },
+  ]);
+  await act(member);
+  const snapshot = (
+    await db.query<{ value: { history: unknown[]; entries: unknown[] } }>(
+      "select public.medications_action() as value",
+    )
+  ).rows[0].value;
+  expect(snapshot.entries).toHaveLength(1);
+  expect(snapshot.history).toHaveLength(4);
+  await db.query("select public.medications_action('grant',$1)", [
+    { expertId: doctor, granted: false },
+  ]);
+  await act(doctor);
+  const revoked = (
+    await db.query<{ value: { entries: unknown[] } }>(
+      "select public.medications_action('snapshot',$1) as value",
+      [{ clientId: member }],
+    )
+  ).rows[0].value;
+  expect(revoked.entries).toEqual([]);
+  await expect(
+    db.query("select public.medications_action('save',$1)", [
+      { id, version: 4, clientId: member, content },
+    ]),
+  ).rejects.toThrow("odobrio");
+  await act(other);
+  await expect(
+    db.query("select public.medications_action('snapshot',$1)", [
+      { clientId: member },
+    ]),
+  ).rejects.toThrow("Pristup");
+  await db.exec("set role authenticated");
+  try {
+    await expect(
+      db.query("select * from public.medication_versions"),
+    ).rejects.toThrow();
+  } finally {
+    await db.exec("reset role");
+  }
+});
+
+it("keeps cycle entries owner-only across RPCs, direct reads and admin previews", async () => {
+  const entry = {
+    id: "c1000000-0000-4000-8000-000000000001",
+    date: "2026-01-01",
+    bleeding: "light",
+    pain: 2,
+    symptoms: ["fatigue"],
+    note: "Synthetic private entry",
+  };
+  await act(member);
+  await db.query("select public.cycle_action('save',$1)", [entry]);
+  await act(other);
+  const snapshot = (
+    await db.query<{ value: { entries: unknown[] } }>(
+      "select public.cycle_action() as value",
+    )
+  ).rows[0].value;
+  expect(snapshot.entries).toEqual([]);
+  await expect(
+    db.query("select public.cycle_action('remove',$1)", [{ id: entry.id }]),
+  ).rejects.toThrow();
+  await expect(
+    db.query("select public.cycle_action('save',$1)", [entry]),
+  ).rejects.toThrow("Pristup");
+  await db.exec("set role authenticated");
+  try {
+    expect((await db.query("select * from public.cycle_entries")).rows).toEqual(
+      [],
+    );
+  } finally {
+    await db.exec("reset role");
+  }
+  await act(trainer);
+  await expect(db.query("select public.cycle_action()")).rejects.toThrow(
+    "vlasniku",
+  );
+  const assigned = (
+    await db.query<{ value: unknown }>(
+      "select public.workspace_snapshot($1) as value",
+      [member],
+    )
+  ).rows[0].value;
+  expect(JSON.stringify(assigned)).not.toContain(entry.note);
+  await act(member);
+  await db.query("select public.cycle_action('save',$1)", [
+    { ...entry, note: "Updated synthetic entry" },
+  ]);
+  expect(
+    (
+      await db.query("select id from public.cycle_entries where user_id=$1", [
+        member,
+      ])
+    ).rows,
+  ).toHaveLength(1);
+  await db.query("select public.cycle_action('remove',$1)", [{ id: entry.id }]);
+  expect(
+    (
+      await db.query<{ removed_at: unknown }>(
+        "select removed_at from public.cycle_entries where id=$1",
+        [entry.id],
+      )
+    ).rows[0].removed_at,
+  ).toBeTruthy();
+  await db.query("select public.cycle_action('restore',$1)", [
+    { id: entry.id },
+  ]);
+  expect(
+    (
+      await db.query<{ removed_at: unknown }>(
+        "select removed_at from public.cycle_entries where id=$1",
+        [entry.id],
+      )
+    ).rows[0].removed_at,
+  ).toBeNull();
+  for (const invalid of [
+    { pain: 11 },
+    { date: "2999-01-01" },
+    { symptoms: ["invalid"] },
+  ])
+    await expect(
+      db.query("select public.cycle_action('save',$1)", [
+        { ...entry, ...invalid },
+      ]),
+    ).rejects.toThrow();
 });
 
 it("never trusts role metadata supplied at signup", async () => {
@@ -427,4 +637,76 @@ it("trainer invitations also resolve existing username clients and preserve acce
   expect(preview.actor.role).toBe("trainer");
   expect(preview.readOnly).toBe(true);
   expect(preview.clients).toEqual([]);
+});
+
+it("does not let admin previews turn into private cycle access", async () => {
+  const session = await usernameLogin("test-admin", "initial");
+  const preview = await usernameAction(session.token!, "snapshot", {}, member);
+  expect(JSON.stringify(preview)).not.toContain("Updated synthetic entry");
+  await expect(
+    db.query("select public.username_cycle($1)", [session.token!]),
+  ).rejects.toThrow("vlasniku");
+  const client = await usernameLogin("test-client", "new-long-password");
+  const result = (
+    await db.query<{ value: { entries: unknown[] } }>(
+      "select public.username_cycle($1) as value",
+      [client.token!],
+    )
+  ).rows[0].value;
+  expect(result.entries).toHaveLength(1);
+  await expect(
+    db.query("select public.username_cycle($1)", ["f".repeat(64)]),
+  ).rejects.toThrow("sesija");
+  await act(member);
+  await db.query("select public.workspace_action('onboard',$1)", [
+    { modules: ["training", "cycle"], intake: {} },
+  ]);
+  expect(
+    (
+      await db.query<{ modules: string[] }>(
+        "select modules from public.preferences where user_id=$1",
+        [member],
+      )
+    ).rows[0].modules,
+  ).toContain("cycle");
+});
+it("keeps medication access out of admin previews and revokes access on relationship termination", async () => {
+  const adminSession = await usernameLogin("test-admin", "initial");
+  await expect(
+    db.query("select public.username_medications($1)", [adminSession.token!]),
+  ).rejects.toThrow("nije dozvoljen");
+  const preview = await usernameAction(
+    adminSession.token!,
+    "snapshot",
+    {},
+    member,
+  );
+  expect(JSON.stringify(preview)).not.toContain("Synthetic disclosure");
+  await db.query(
+    "update public.relationships set status='ended' where expert_id=$1 and client_id=$2",
+    [trainer, member],
+  );
+  await act(trainer);
+  await expect(
+    db.query("select public.medications_action('snapshot',$1)", [
+      { clientId: member },
+    ]),
+  ).rejects.toThrow("aktivnog klijenta");
+  await db.query(
+    "update public.relationships set status='active' where expert_id=$1 and client_id=$2",
+    [trainer, member],
+  );
+  await db.query(
+    "insert into app_private.username_accounts(username,user_id,password_hash) values('test-doctor','d0000000-0000-4000-8000-000000000001',extensions.crypt(encode(extensions.digest('fixture-password','sha256'),'hex'),extensions.gen_salt('bf',12)))",
+  );
+  const doctor = await usernameLogin("test-doctor", "fixture-password");
+  const workspace = await usernameAction(doctor.token!);
+  expect(workspace.actor.role).toBe("doctor");
+  const context = (
+    await db.query<{ value: { clients: unknown[] } }>(
+      "select public.username_medications($1) as value",
+      [doctor.token!],
+    )
+  ).rows[0].value;
+  expect(context.clients).toHaveLength(1);
 });

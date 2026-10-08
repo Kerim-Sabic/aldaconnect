@@ -8,6 +8,8 @@ import {
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { Actor } from "./domain";
+import { cycleLocalSchema } from "./cycle-database";
+import { medicationLocalSchema } from "./medication-database";
 
 const globalDb = globalThis as unknown as { fitnessDb?: Promise<PGlite> };
 export function hashPassword(password: string) {
@@ -41,6 +43,8 @@ CREATE TABLE IF NOT EXISTS audit(id TEXT PRIMARY KEY,actor_id TEXT REFERENCES us
 `;
 export async function initialize(db: PGlite) {
   await db.exec(schema);
+  await db.exec(cycleLocalSchema);
+  await db.exec(medicationLocalSchema);
   await db.exec(`CREATE TABLE IF NOT EXISTS workout_sessions(id TEXT PRIMARY KEY,client_id TEXT REFERENCES users(id),plan_id TEXT REFERENCES plans(id),started_at TIMESTAMPTZ DEFAULT now(),completed_at TIMESTAMPTZ);
 CREATE UNIQUE INDEX IF NOT EXISTS one_active_workout ON workout_sessions(client_id) WHERE completed_at IS NULL;
 ALTER TABLE workout_logs ALTER COLUMN reps DROP NOT NULL;
