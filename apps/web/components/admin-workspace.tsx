@@ -4,6 +4,9 @@ import { ArrowUpRight, ShieldCheck, Users, LogOut } from "lucide-react";
 import { modules, type Actor } from "@/lib/domain";
 import Brand from "./brand";
 import ThemeControl from "./theme-control";
+import OwnerTools from "./owner-tools";
+import { PasswordForm } from "./password-form";
+export { PasswordForm } from "./password-form";
 export type AdminData = {
   actor: Actor;
   adminUsers?: { id: string; name: string; role: string; onboarded: boolean }[];
@@ -45,6 +48,10 @@ export default function AdminWorkspace({
             ["modules", "Moduli i dostupnost"],
             ["audit", "Historija aktivnosti"],
             ["security", "Sigurnost računa"],
+            ["clients", "Klijenti i planovi"],
+            ["messages", "Poruke"],
+            ["groups", "Trening grupe"],
+            ["programs", "Programi"],
           ].map(([id, label]) => (
             <button
               key={id}
@@ -65,41 +72,56 @@ export default function AdminWorkspace({
           <span>Administracija</span>
           <ThemeControl />
         </div>
-        <h1>Dobro došli, {data.actor.name}.</h1>
-        <p className="muted">
-          Pregled korisničkih prostora i razvoj platforme.
-        </p>
-        <section
-          className="role-previews"
-          aria-label="Pregledi korisničkih prostora"
-        >
-          <h2>Odaberite prostor</h2>
-          <p>
-            Pregledi su samo za čitanje. Privatna evidencija zahtijeva dozvolu
-            klijenta.
-          </p>
-          <div>
-            {["client", "trainer", "doctor"].map((role) => {
-              const user = users.find((u) => u.role === role);
-              return (
-                <button
-                  className="secondary"
-                  key={role}
-                  disabled={!user && role !== "trainer"}
-                  onClick={() => preview(user?.id ?? "role:trainer")}
-                >
-                  {roles[role]} <ArrowUpRight size={16} />
+        {!["clients", "messages", "groups", "programs"].includes(view) && (
+          <>
+            <h1>Dobro došli, {data.actor.name}.</h1>
+            <p className="muted">
+              Pregled korisničkih prostora i razvoj platforme.
+            </p>
+            <section
+              className="role-previews"
+              aria-label="Pregledi korisničkih prostora"
+            >
+              <h2>Odaberite prostor</h2>
+              <p>
+                Pregledi su samo za čitanje. Privatna evidencija zahtijeva
+                dozvolu klijenta.
+              </p>
+              <div>
+                {["client", "trainer", "doctor"].map((role) => {
+                  const user = users.find((u) => u.role === role);
+                  return (
+                    <button
+                      className="secondary"
+                      key={role}
+                      disabled={!user && role !== "trainer"}
+                      onClick={() => preview(user?.id ?? "role:trainer")}
+                    >
+                      {roles[role]} <ArrowUpRight size={16} />
+                    </button>
+                  );
+                })}
+                <button className="secondary" disabled>
+                  Nutricionista · U pripremi
                 </button>
-              );
-            })}
-            <button className="secondary" disabled>
-              Nutricionista · U pripremi
-            </button>
-            <button className="secondary" disabled>
-              Fizioterapeut · U pripremi
-            </button>
+                <button className="secondary" disabled>
+                  Fizioterapeut · U pripremi
+                </button>
+              </div>
+            </section>
+          </>
+        )}
+        {["clients", "messages", "groups", "programs"].includes(view) && (
+          <div className="admin-tool-content">
+            <OwnerTools
+              key={view}
+              initialView={view === "programs" ? "library" : view}
+              data={data}
+              preview={preview}
+              logout={logout}
+            />
           </div>
-        </section>
+        )}
         {view === "overview" && (
           <>
             <div className="admin-stats">
@@ -242,65 +264,5 @@ export default function AdminWorkspace({
         )}
       </main>
     </div>
-  );
-}
-export function PasswordForm() {
-  const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
-  return (
-    <form
-      className="password-form"
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const form = e.currentTarget;
-        const f = new FormData(form);
-        setBusy(true);
-        try {
-          const r = await fetch("/api/workspace", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "changePassword",
-              payload: {
-                currentPassword: f.get("currentPassword"),
-                password: f.get("password"),
-              },
-            }),
-          });
-          const d = await r.json();
-          setMessage(r.ok ? "Lozinka je promijenjena." : d.error);
-          if (r.ok) form.reset();
-        } catch {
-          setMessage("Nije moguće povezati se. Pokušajte ponovo.");
-        } finally {
-          setBusy(false);
-        }
-      }}
-    >
-      <label>
-        Trenutna lozinka
-        <input
-          name="currentPassword"
-          type="password"
-          required
-          autoComplete="current-password"
-        />
-      </label>
-      <label>
-        Nova lozinka
-        <input
-          name="password"
-          type="password"
-          required
-          minLength={12}
-          maxLength={128}
-          autoComplete="new-password"
-        />
-      </label>
-      <button className="primary" disabled={busy}>
-        Promijenite lozinku
-      </button>
-      {message && <p role="status">{message}</p>}
-    </form>
   );
 }

@@ -10,12 +10,26 @@ import { focusScope } from "./focus-scope";
 import Brand from "./brand";
 import ThemeControl from "./theme-control";
 import { dayKey, nutritionTotals } from "@/lib/nutrition";
+import { useLiveUpdates } from "@/lib/live-updates";
+
+import TrainingGroups, {
+  MessageFeed,
+  ChatComposer,
+  type ChatMessage,
+  type PortalData,
+} from "./training-groups";
 import dynamic from "next/dynamic";
 const moduleLoading = () => (
   <p className="module-loading" role="status">
     Učitavamo vaš prostor…
   </p>
 );
+const ProgramLibrary = dynamic(() => import("./program-library"), {
+  loading: moduleLoading,
+});
+const AdminWorkspace = dynamic(() => import("./admin-workspace"), {
+  loading: moduleLoading,
+});
 const Onboarding = dynamic(() => import("./onboarding"), {
   loading: moduleLoading,
 });
@@ -38,10 +52,8 @@ const MealComposer = dynamic(
 const DoctorWorkspace = dynamic(() => import("./doctor-workspace"), {
   loading: moduleLoading,
 });
-import AdminWorkspace, {
-  PasswordForm,
-  type AdminData,
-} from "./admin-workspace";
+import type { AdminData } from "./admin-workspace";
+import { PasswordForm } from "./password-form";
 import {
   Activity,
   ArrowUpRight,
@@ -109,6 +121,7 @@ type Task = {
   status: string;
 };
 type Message = {
+  recipient_id: string;
   id: string;
   sender_id: string;
   sender_name: string;
@@ -239,6 +252,25 @@ function WorkspaceView({
   const [cloud, setCloud] = useState(false);
   const [inviteToken, setInviteToken] = useState("");
   const [inviteLink, setInviteLink] = useState("");
+  const [recoveryCode, setRecoveryCode] = useState("");
+  const [recoveryAfterReset, setRecoveryAfterReset] = useState(false);
+  useEffect(() => {
+    if (modal?.kind !== "plan") setTemplatePlan(undefined);
+  }, [modal?.kind]);
+  const [peerId, setPeerId] = useState("");
+  const [templatePlan, setTemplatePlan] = useState<Plan | undefined>();
+  const groupUpdates = useLiveUpdates<PortalData>(
+    "/api/portal",
+    cloud && data?.actor.role === "client" && !previewId && view !== "groups",
+    15000,
+  );
+  const liveChat = useLiveUpdates<{ directMessages: ChatMessage[] }>(
+    "/api/portal?scope=messages",
+    view === "messages" &&
+      Boolean(data) &&
+      data?.actor.role !== "admin" &&
+      !previewId,
+  );
   useEffect(() => {
     window.scrollTo(0, 0);
     document.getElementById("main")?.focus({ preventScroll: true });
@@ -542,14 +574,10 @@ function WorkspaceView({
           : id === "recovery"
             ? Heart
             : ShieldCheck;
-  const notice = (
+  const notice = cloud ? null : (
     <div className="development">
       <span className="status-dot" />
-      {cloud ? "Supabase pregled" : "Lokalni razvoj"}{" "}
-      <span className="dev-divider">/</span>{" "}
-      {cloud
-        ? "Razvojna verzija · bez zdravstvenih usluga i naplate"
-        : "Izmišljeni profili · bez zdravstvenih usluga i naplate"}
+      Lokalni razvoj <span className="dev-divider">/</span> Izmišljeni profili
     </div>
   );
   if (loading)
@@ -558,6 +586,50 @@ function WorkspaceView({
         <Brand />
         <p>Pripremamo vaš prostor…</p>
       </div>
+    );
+  if (recoveryCode)
+    return (
+      <main className="recovery-screen">
+        <section className="recovery-card">
+          <Brand />
+          <span className="sheet-kicker">SAČUVAJTE PRISTUP SVOM PROSTORU</span>
+          <h1>
+            {recoveryAfterReset
+              ? "Lozinka je obnovljena."
+              : "Vaš račun je spreman."}
+          </h1>
+          <p>
+            Sačuvajte ovaj privatni kod na sigurnom mjestu. Uz njega možete
+            obnoviti lozinku bez e-pošte. Kod nikome ne šaljite.
+          </p>
+          <label>
+            Vaš kod za oporavak
+            <textarea readOnly value={recoveryCode} />
+          </label>
+          <button
+            className="secondary full"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(recoveryCode);
+                setToast("Kod je kopiran. Sačuvajte ga na sigurnom mjestu.");
+              } catch {
+                setToast("Označite kod i kopirajte ga ručno.");
+              }
+            }}
+          >
+            <Copy size={16} /> Kopirajte kod
+          </button>
+          <p className="food-footnote">
+            Nakon upotrebe za obnovu, ovaj kod se zamjenjuje novim kodom.
+          </p>
+          <button className="primary full" onClick={() => setRecoveryCode("")}>
+            Sačuvao/la sam kod ·{" "}
+            {recoveryAfterReset ? "Prijavite se" : "Nastavite"}{" "}
+            <ArrowRight size={16} />
+          </button>
+          {toast && <p role="status">{toast}</p>}
+        </section>
+      </main>
     );
   if (!data)
     return (
@@ -677,6 +749,10 @@ function WorkspaceView({
                         setAuth("login");
                       } else {
                         const signedIn = await refresh();
+                        if (result.recoveryCode) {
+                          setRecoveryAfterReset(false);
+                          setRecoveryCode(result.recoveryCode);
+                        }
                         setView(
                           signedIn?.actor.role === "trainer"
                             ? "queue"
@@ -698,7 +774,7 @@ function WorkspaceView({
                 </h2>
                 <p>
                   {cloud
-                    ? "Kreirajte korisnički račun ili se prijavite. U ovoj razvojnoj verziji koristite testne podatke."
+                    ? "Vaš trening, ishrana i podrška. Na jednom mjestu."
                     : "Samo lokalni testni računi. Koristite izmišljene podatke."}
                 </p>
                 {auth === "register" && (
@@ -714,12 +790,26 @@ function WorkspaceView({
                   </label>
                 )}
                 <label>
-                  {auth === "login" ? "Korisničko ime ili e-pošta" : "E-pošta"}
+                  {auth === "login"
+                    ? "Korisničko ime ili e-pošta"
+                    : cloud
+                      ? "Korisničko ime"
+                      : "E-pošta"}
                   <input
                     name="email"
-                    type={auth === "login" ? "text" : "email"}
+                    type={auth === "login" || cloud ? "text" : "email"}
                     required
-                    autoComplete={auth === "login" ? "username" : "email"}
+                    autoComplete={
+                      auth === "login" || cloud ? "username" : "email"
+                    }
+                    minLength={auth === "register" && cloud ? 3 : undefined}
+                    maxLength={auth === "register" && cloud ? 40 : undefined}
+                    pattern={
+                      auth === "register" && cloud
+                        ? "[a-zA-Z0-9][a-zA-Z0-9_.\\-]{2,39}"
+                        : undefined
+                    }
+                    autoCapitalize="none"
                   />
                 </label>
                 <label>
@@ -737,7 +827,9 @@ function WorkspaceView({
                 </label>
                 <small>
                   {cloud
-                    ? "Najmanje 12 znakova. Novi računi zahtijevaju potvrdu putem e-pošte."
+                    ? auth === "register"
+                      ? "Lozinka: najmanje 12 znakova. Korisničko ime: slova bez kvačica, brojevi, tačka, crtica. Račun je spreman odmah."
+                      : "Prijavite se korisničkim imenom ili postojećom adresom e-pošte."
                     : "Najmanje 12 znakova. Ova lokalna verzija ne šalje e-poštu."}
                 </small>
                 <button className="primary full" disabled={busy}>
@@ -756,17 +848,79 @@ function WorkspaceView({
               <div className="auth-help">
                 <button
                   className="text-link"
-                  onClick={() => setModal({ kind: "forgotPassword" })}
+                  onClick={() => setModal({ kind: "recoverUsername" })}
                 >
                   Zaboravili ste lozinku?
                 </button>
+              </div>
+            )}
+            {modal?.kind === "recoverUsername" && (
+              <form
+                className="account-recovery-form"
+                onSubmit={(e) =>
+                  formSubmit(e, async (f) => {
+                    setBusy(true);
+                    try {
+                      const result = await request("recoverUsername", {
+                        username: f.get("username"),
+                        recoveryCode: f.get("recoveryCode"),
+                        password: f.get("password"),
+                      });
+                      setRecoveryAfterReset(true);
+                      setRecoveryCode(result.recoveryCode);
+                      setModal(null);
+                    } finally {
+                      setBusy(false);
+                    }
+                  })
+                }
+              >
+                <h3>Obnovite pristup</h3>
+                <p>Unesite kod koji ste sačuvali prilikom kreiranja računa.</p>
+                <label>
+                  Korisničko ime
+                  <input
+                    name="username"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    required
+                    minLength={3}
+                    maxLength={40}
+                  />
+                </label>
+                <label>
+                  Kod za oporavak
+                  <input
+                    name="recoveryCode"
+                    type="password"
+                    autoComplete="off"
+                    required
+                    minLength={64}
+                    maxLength={64}
+                  />
+                </label>
+                <label>
+                  Nova lozinka
+                  <input
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    minLength={12}
+                    maxLength={128}
+                  />
+                </label>
+                <button className="primary full" disabled={busy}>
+                  Obnovite račun
+                </button>
                 <button
                   className="text-link"
-                  onClick={() => setModal({ kind: "resendConfirmation" })}
+                  type="button"
+                  onClick={() => setModal(null)}
                 >
-                  Pošaljite potvrdu ponovo
+                  Odustanite
                 </button>
-              </div>
+              </form>
             )}
             {modal &&
               ["forgotPassword", "resendConfirmation"].includes(modal.kind) && (
@@ -862,6 +1016,8 @@ function WorkspaceView({
           icon: CalendarDays,
         },
         { id: "nutrition", label: "Ishrana", icon: Flame },
+        { id: "library", label: "Programi", icon: BookOpen },
+        { id: "groups", label: "Trening grupe", icon: Users },
         {
           id: "progress",
           label: language === "bs" ? "Napredak" : "Napredak",
@@ -1219,6 +1375,22 @@ function WorkspaceView({
             ) : null}
           </div>
 
+          {view !== "groups" &&
+            groupUpdates.data?.groups.some((g) => g.status === "invited") && (
+              <button
+                className="group-invitation-banner"
+                onClick={() => changeView("groups")}
+              >
+                <Users size={19} />
+                <span>
+                  <strong>Imate poziv u trening grupu.</strong>
+                  <small>
+                    Upoznajte svoj tim i odaberite želite li se pridružiti.
+                  </small>
+                </span>
+                <ArrowUpRight size={18} />
+              </button>
+            )}
           {view === "today" && (
             <div className="day-layout">
               <div className="day-primary">
@@ -1327,7 +1499,11 @@ function WorkspaceView({
                   }
                 >
                   <span className="avatar">
-                    {initials(data.team[0]?.name ?? "Vaš tim")}
+                    {initials(
+                      data.team.find((p) => p.id === peerId)?.name ??
+                        data.team[0]?.name ??
+                        "Vaš tim",
+                    )}
                   </span>
                   <span>
                     <strong>
@@ -2094,48 +2270,27 @@ function WorkspaceView({
           )}
 
           {view === "library" && (
-            <>
-              <div className="library-banner">
-                <span className="eyebrow">TEMELJ ZA NAPREDAK</span>
-                <h2>
-                  Pažljivo osmišljeni programi.
-                  <br />
-                  <em>Prilagođeni pojedincu.</em>
-                </h2>
-                <p>
-                  Kreirajte novu verziju plana za klijenta. Završeni treninzi
-                  ostaju u historiji.
-                </p>
-              </div>
-              <div className="library-grid">
-                {[
-                  "Donji dio tijela · Snaga i ravnoteža",
-                  "Cijelo tijelo · Pronađite svoj ritam",
-                  "Gornji dio tijela · Postepena snaga",
-                ].map((name, i) => (
-                  <button
-                    className="library-item"
-                    key={name}
-                    onClick={() => setModal({ kind: "plan" })}
-                  >
-                    <span className="library-count">0{i + 1}</span>
-                    <Dumbbell size={36} strokeWidth={1} />
-                    <h3>{name}</h3>
-                    <p>Početni predložak · prilagodite prije objave</p>
-                    <span>
-                      Pripremite za klijenta <ArrowUpRight size={17} />
-                    </span>
-                  </button>
-                ))}
-              </div>
-              <div className="information">
-                <BookOpen size={19} />
-                <span>
-                  Početni primjeri sadrže tekstualne upute. Biblioteka
-                  provjerenih i licenciranih snimaka vježbi je u planu izrade.
-                </span>
-              </div>
-            </>
+            <ProgramLibrary
+              accountId={data.actor.id}
+              onPrepare={
+                expert && !previewId
+                  ? (title, exercises) => {
+                      setTemplatePlan({
+                        id: "template",
+                        title,
+                        version: 0,
+                        exercises,
+                        author_name: "Aldin Rastoder",
+                        reason: "",
+                      });
+                      setModal({ kind: "plan" });
+                    }
+                  : undefined
+              }
+            />
+          )}
+          {view === "groups" && !previewId && (
+            <TrainingGroups actorId={data.actor.id} />
           )}
 
           {view === "messages" && (
@@ -2145,8 +2300,16 @@ function WorkspaceView({
                 {(expert ? data.clients : data.team).map((p) => (
                   <button
                     key={p.id}
-                    className={expert && p.id !== clientId ? "" : "selected"}
-                    onClick={() => (expert ? refresh(p.id) : null)}
+                    className={
+                      (
+                        expert
+                          ? p.id === clientId
+                          : p.id === (peerId || data.team[0]?.id)
+                      )
+                        ? "selected"
+                        : ""
+                    }
+                    onClick={() => (expert ? refresh(p.id) : setPeerId(p.id))}
                   >
                     <span className="avatar sage">{initials(p.name)}</span>
                     <span>
@@ -2162,78 +2325,58 @@ function WorkspaceView({
                     {initials(
                       expert
                         ? (client?.name ?? "Korisnik")
-                        : (data.team[0]?.name ?? "Vaš tim"),
+                        : (data.team.find((p) => p.id === peerId)?.name ??
+                            data.team[0]?.name ??
+                            "Vaš tim"),
                     )}
                   </span>
                   <div>
                     <strong>
                       {expert
                         ? client?.name
-                        : (data.team[0]?.name ?? "Nema povezanog stručnjaka")}
+                        : (data.team.find((p) => p.id === peerId)?.name ??
+                          data.team[0]?.name ??
+                          "Nema povezanog stručnjaka")}
                     </strong>
                     <small>
-                      Razgovor s trenerom · vrijeme odgovora po dogovoru
+                      {liveChat.connected
+                        ? "Poruke se automatski osvježavaju"
+                        : "Povezivanje…"}
                     </small>
                   </div>
                 </header>
-                <div className="message-feed">
-                  {data.messages.map((m) => (
-                    <div
-                      className={
-                        "message " +
-                        (m.sender_id === data.actor.id ? "own" : "")
-                      }
-                      key={m.id}
-                    >
-                      <small>{m.sender_name}</small>
-                      <p>{m.body}</p>
-                      <time>{time(m.created_at)}</time>
-                    </div>
-                  ))}
-                  {!data.messages.length && (
-                    <div className="empty-state">
-                      <MessageCircle size={28} />
-                      <p>
-                        {expert
-                          ? "Započnite razgovor s klijentom."
-                          : "Povežite se sa stručnjakom da započnete razgovor."}
-                      </p>
-                    </div>
+                <MessageFeed
+                  key={clientId + peerId}
+                  actorId={data.actor.id}
+                  messages={(
+                    liveChat.data?.directMessages ?? data.messages
+                  ).filter((m) =>
+                    expert
+                      ? m.sender_id === clientId || m.recipient_id === clientId
+                      : m.sender_id === (peerId || data.team[0]?.id) ||
+                        m.recipient_id === (peerId || data.team[0]?.id),
                   )}
-                </div>
-                <form
-                  className="message-composer"
-                  onSubmit={(e) => {
-                    const form = e.currentTarget;
-                    formSubmit(e, async (f) => {
-                      await mutate(
-                        "message",
-                        {
-                          recipientId: expert ? clientId : data.team[0]?.id,
-                          text: f.get("text"),
-                        },
-                        "Poruka je sačuvana.",
-                      );
-                      form.reset();
+                />
+                <ChatComposer
+                  disabled={
+                    Boolean(previewId) || (!expert && !data.team.length)
+                  }
+                  send={async (text) => {
+                    await request("message", {
+                      recipientId: expert
+                        ? clientId
+                        : peerId || data.team[0]?.id,
+                      text,
                     });
+                    await liveChat.refresh();
+                    await refresh(expert ? clientId : undefined);
                   }}
-                >
-                  <input
-                    name="text"
-                    required
-                    maxLength={2000}
-                    placeholder="Napišite poruku…"
-                    aria-label="Poruka"
-                    disabled={!expert && !data.team.length}
-                  />
-                  <button
-                    className="primary"
-                    disabled={busy || (!expert && !data.team.length)}
-                    aria-label="Pošaljite poruku"
-                  >
-                    <ArrowUpRight size={19} />
-                  </button>
-                </form>
+                />
+                {liveChat.error && (
+                  <p className="food-error" role="status">
+                    {liveChat.error}
+                  </p>
+                )}
               </section>
             </div>
           )}
@@ -2462,7 +2605,7 @@ function WorkspaceView({
           )}
           <footer className="page-footer">
             <span>Napredak je ličan.</span>
-            <span>Alda Connect · Razvojna verzija</span>
+            <span>Alda Connect</span>
           </footer>
         </main>
       </div>
@@ -2645,6 +2788,7 @@ function WorkspaceView({
               </form>
             ) : modal?.kind === "meal" || modal?.kind === "scanMeal" ? (
               <MealComposer
+                actorId={data.actor.id}
                 camera={modal.kind === "scanMeal"}
                 entries={data.diary}
                 busy={busy}
@@ -2796,7 +2940,7 @@ function WorkspaceView({
               </form>
             ) : modal?.kind === "plan" ? (
               <PlanEditor
-                plan={plan}
+                plan={templatePlan ?? plan}
                 clients={data.clients}
                 clientId={clientId}
                 busy={busy}

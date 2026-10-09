@@ -47,6 +47,19 @@ export async function cloudGet(req: NextRequest) {
     data: { user },
   } = await sb.auth.getUser();
   if (!user) return reply({ error: "Prijavite se da nastavite." }, 401);
+  const { data: profile } = await sb
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (profile?.role === "admin") {
+    const { data, error } = await sb.rpc("owner_snapshot", {
+      p_preview: req.nextUrl.searchParams.get("preview") || null,
+    });
+    return error
+      ? reply({ error: "Nije moguće učitati vlasnički prostor." }, 403)
+      : reply(data);
+  }
   const { data, error } = await sb.rpc("workspace_snapshot", {
     p_client_id: req.nextUrl.searchParams.get("client") ?? null,
   });
@@ -77,6 +90,54 @@ export async function cloudPost(req: NextRequest) {
       payload.intake = onboardingIntake.parse(payload.intake);
     if (action === "diary") Object.assign(payload, diaryInput.parse(payload));
     const sb = await supabaseServer();
+    if (action === "recoverUsername") {
+      const { data, error } = await sb.rpc("username_recover", {
+        p_username: z.string().trim().min(3).max(40).parse(payload.username),
+        p_recovery: z.string().trim().length(64).parse(payload.recoveryCode),
+        p_password: z.string().min(12).max(128).parse(payload.password),
+      });
+      if (error || !data?.ok)
+        return reply(
+          { error: data?.error || "Oporavak računa trenutno nije dostupan." },
+          400,
+        );
+      (await cookies()).delete(usernameCookie);
+      await sb.auth.signOut();
+      return reply(data);
+    }
+    if (
+      action === "register" &&
+      typeof payload.email === "string" &&
+      !payload.email.includes("@")
+    ) {
+      const { data, error } = await sb.rpc("username_register", {
+        p_name: z.string().trim().min(2).max(80).parse(payload.name),
+        p_username: z
+          .string()
+          .trim()
+          .regex(/^[a-zA-Z0-9][a-zA-Z0-9_.-]{2,39}$/)
+          .parse(payload.email),
+        p_password: z.string().min(12).max(128).parse(payload.password),
+      });
+      if (error || !data?.token)
+        return reply(
+          {
+            error: error?.message.startsWith("APP:")
+              ? error.message.slice(4)
+              : "Korisničko ime nije dostupno. Pokušajte drugo.",
+          },
+          400,
+        );
+      await sb.auth.signOut();
+      (await cookies()).set(usernameCookie, data.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+        maxAge: 43200,
+      });
+      return reply({ ok: true, recoveryCode: data.recoveryCode });
+    }
     if (
       action === "login" &&
       typeof payload.email === "string" &&

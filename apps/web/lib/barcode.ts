@@ -1,5 +1,20 @@
-export function productCode(input: string): string | null {
+export function expandUpce(code: string): string | null {
+  if (!/^[01]\d{7}$/.test(code)) return null;
+  const [a, b, c, d, e, f] = code.slice(1, 7);
+  let body: string;
+  if ("012".includes(f)) body = a + b + f + "0000" + c + d + e;
+  else if (f === "3") body = a + b + c + "00000" + d + e;
+  else if (f === "4") body = a + b + c + d + "00000" + e;
+  else body = a + b + c + d + e + "0000" + f;
+  return productCode(code[0] + body + code[7]);
+}
+export function productCode(input: string, format?: "UPC_E"): string | null {
+  if (format === "UPC_E") return expandUpce(input.trim());
   let code = input.trim().replace(/[ -]/g, "");
+  const gs1 = input
+    .trim()
+    .match(/^(?:\]C1|\]d2|\]Q3)?(?:\(01\)|01)(\d{14})(?:\x1d|\(|\d|$)/);
+  if (gs1) code = gs1[1];
   if (!/^\d+$/.test(code)) {
     try {
       const url = new URL(input.trim());
@@ -24,6 +39,14 @@ export function productCode(input: string): string | null {
       0,
     );
   return (10 - (sum % 10)) % 10 === check ? code : null;
+}
+export function productCodeVariants(code: string): string[] {
+  const variants = [code];
+  if (code.length === 14 && code.startsWith("0")) variants.push(code.slice(1));
+  const ean = variants.at(-1)!;
+  if (ean.length === 13 && ean.startsWith("0")) variants.push(ean.slice(1));
+  if (code.length === 12) variants.push("0" + code);
+  return [...new Set(variants)];
 }
 export type FoodProduct = {
   code: string;

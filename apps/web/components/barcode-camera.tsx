@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   BrowserMultiFormatReader,
+  BarcodeFormat,
   type IScannerControls,
 } from "@zxing/browser";
 import { productCode } from "@/lib/barcode";
@@ -43,7 +44,12 @@ export default function BarcodeCamera({
         video!,
         (result, _error, scanner) => {
           if (!result || stopped) return;
-          const code = productCode(result.getText());
+          const code = productCode(
+            result.getText(),
+            result.getBarcodeFormat() === BarcodeFormat.UPC_E
+              ? "UPC_E"
+              : undefined,
+          );
           if (!code) {
             setError(
               "Ovaj kod ne sadrži prepoznatljiv barkod proizvoda. Usmjerite kameru prema barkodu na pakovanju.",

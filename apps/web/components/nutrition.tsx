@@ -16,9 +16,16 @@ import {
   LoaderCircle,
   Plus,
   Utensils,
+  Search,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { productCode, portionCalories, type FoodProduct } from "@/lib/barcode";
+import {
+  productCode,
+  productCodeVariants,
+  portionCalories,
+  type FoodProduct,
+} from "@/lib/barcode";
+import { savedFoods, saveFood } from "@/lib/saved-foods";
 const BarcodeCamera = dynamic(() => import("./barcode-camera"), { ssr: false });
 import { dayKey, nutritionTotals, type DiaryEntry } from "@/lib/nutrition";
 
@@ -223,11 +230,13 @@ export default function Nutrition({
 }
 
 export function MealComposer({
+  actorId,
   camera = false,
   entries,
   onSave,
   busy,
 }: {
+  actorId: string;
   camera?: boolean;
   entries: DiaryEntry[];
   onSave: (label: string, calories: number) => Promise<void>;
@@ -243,6 +252,12 @@ export function MealComposer({
   const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [term, setTerm] = useState("");
+  const [results, setResults] = useState<FoodProduct[]>([]);
+  const [searched, setSearched] = useState(false);
+  const [customName, setCustomName] = useState("");
+  const [customCalories, setCustomCalories] = useState("");
+  const [customUnit, setCustomUnit] = useState<"g" | "ml">("g");
   const abortRef = useRef<AbortController | null>(null);
   useEffect(
     () => () => {
@@ -250,42 +265,81 @@ export function MealComposer({
     },
     [],
   );
-  const lookup = useCallback(async (input: string) => {
-    setScanning(false);
-    setError("");
-    const valid = productCode(input);
-    if (!valid) {
-      setError("Unesite ispravan broj barkoda s pakovanja.");
-      return;
-    }
+  const lookup = useCallback(
+    async (input: string) => {
+      setScanning(false);
+      setError("");
+      const valid = productCode(input);
+      if (!valid) {
+        setError("Unesite ispravan broj barkoda s pakovanja.");
+        return;
+      }
+      abortRef.current?.abort();
+      const abort = new AbortController();
+      abortRef.current = abort;
+      setLoading(true);
+      setProduct(null);
+      setCode(valid);
+      const local = savedFoods(actorId).find(
+        (p) =>
+          productCodeVariants(valid).includes(p.code) ||
+          productCodeVariants(p.code).includes(valid),
+      );
+      if (local) {
+        setProduct(local);
+        setAmount("100");
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await fetch(
+          `/api/nutrition/product?code=${encodeURIComponent(valid)}`,
+          { signal: abort.signal },
+        );
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || "Proizvod nije pronađen.");
+        if (!abort.signal.aborted) {
+          setProduct(result);
+          setAmount(String(result.serving ?? 100));
+        }
+      } catch (e) {
+        if (!abort.signal.aborted)
+          setError(
+            e instanceof Error
+              ? e.message
+              : "Provjerite vezu ili unesite obrok ručno.",
+          );
+      } finally {
+        if (!abort.signal.aborted) setLoading(false);
+      }
+    },
+    [actorId],
+  );
+  const search = async () => {
     abortRef.current?.abort();
     const abort = new AbortController();
     abortRef.current = abort;
     setLoading(true);
-    setProduct(null);
-    setCode(valid);
+    setError("");
+    setSearched(false);
     try {
-      const res = await fetch(
-        `/api/nutrition/product?code=${encodeURIComponent(valid)}`,
+      const response = await fetch(
+        "/api/nutrition/search?q=" + encodeURIComponent(term.trim()),
         { signal: abort.signal },
       );
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Proizvod nije pronađen.");
+      const result = await response.json();
+      if (!response.ok) throw Error(result.error);
       if (!abort.signal.aborted) {
-        setProduct(result);
-        setAmount(String(result.serving ?? 100));
+        setResults(result.products);
+        setSearched(true);
       }
     } catch (e) {
       if (!abort.signal.aborted)
-        setError(
-          e instanceof Error
-            ? e.message
-            : "Provjerite vezu ili unesite obrok ručno.",
-        );
+        setError(e instanceof Error ? e.message : "Pretraga nije dostupna.");
     } finally {
       if (!abort.signal.aborted) setLoading(false);
     }
-  }, []);
+  };
   const changeMode = (next: string) => {
     abortRef.current?.abort();
     setLoading(false);
@@ -341,13 +395,167 @@ export function MealComposer({
         >
           <Camera size={17} /> Barkod / QR
         </button>
+        <button
+          aria-pressed={mode === "search"}
+          onClick={() => changeMode("search")}
+        >
+          <Search size={16} /> Pretraga
+        </button>
       </div>
       {error && (
         <p className="food-error" role="alert">
           {error}
         </p>
       )}
-      {mode === "barcode" ? (
+      {mode === "search" ? (
+        <div className="food-search">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void search();
+            }}
+          >
+            <label>
+              Naziv proizvoda ili brend
+              <input
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+                minLength={2}
+                maxLength={80}
+                required
+                placeholder="npr. jogurt, zobene pahuljice…"
+              />
+            </label>
+            <button className="primary full" disabled={loading}>
+              {loading ? (
+                <LoaderCircle className="spinning" size={17} />
+              ) : (
+                <Search size={17} />
+              )}{" "}
+              Pretražite proizvode
+            </button>
+          </form>
+          <div className="food-search-results">
+            {(searched ? results : savedFoods(actorId)).map((p, i) => (
+              <button
+                key={p.code + "-" + i}
+                onClick={() => {
+                  setProduct(p);
+                  setCode(p.code);
+                  setAmount(String(p.serving ?? 100));
+                  changeMode("barcode");
+                }}
+              >
+                <span>
+                  <strong>{p.name}</strong>
+                  <small>
+                    {p.brand} · {p.caloriesPer100} kcal / 100 {p.unit}
+                  </small>
+                </span>
+                <ArrowRight size={16} />
+              </button>
+            ))}
+          </div>
+          {searched && !results.length && (
+            <p className="information">
+              Nema proizvoda s potpunim kalorijskim podacima za ovu pretragu.
+              Unesite vrijednosti s pakovanja ručno.
+            </p>
+          )}
+          <p className="food-footnote">
+            Open Food Facts ·{" "}
+            <a
+              href="https://opendatacommons.org/licenses/odbl/1-0/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              ODbL
+            </a>
+            . Provjerite deklaraciju proizvoda.
+          </p>
+        </div>
+      ) : mode === "custom" ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            try {
+              const valid = productCode(code);
+              if (!valid) throw Error("Unesite ispravan barkod.");
+              const p: FoodProduct = {
+                code: valid,
+                name: customName.trim(),
+                brand: "Vaša deklaracija",
+                caloriesPer100: Number(customCalories),
+                unit: customUnit,
+                serving: null,
+                source: "device",
+              };
+              saveFood(actorId, p);
+              setProduct(p);
+              setAmount("100");
+              changeMode("barcode");
+            } catch (e) {
+              setError(
+                e instanceof Error ? e.message : "Proizvod nije sačuvan.",
+              );
+            }
+          }}
+        >
+          <h3>Sačuvajte deklaraciju</h3>
+          <p className="food-footnote">
+            Proizvod se čuva samo na ovom uređaju, za vaš račun. Sljedeće
+            skeniranje ovog barkoda prepoznat će vaše podatke.
+          </p>
+          <label>
+            Barkod
+            <input
+              required
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              inputMode="numeric"
+              maxLength={24}
+            />
+          </label>
+          <label>
+            Naziv proizvoda
+            <input
+              required
+              minLength={2}
+              maxLength={160}
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+            />
+          </label>
+          <div className="meal-fields">
+            <label>
+              Kalorije na 100 {customUnit}
+              <input
+                required
+                type="number"
+                min={0}
+                max={1000}
+                step="0.1"
+                value={customCalories}
+                onChange={(e) => setCustomCalories(e.target.value)}
+                inputMode="decimal"
+              />
+            </label>
+            <label>
+              Jedinica
+              <select
+                value={customUnit}
+                onChange={(e) => setCustomUnit(e.target.value as "g" | "ml")}
+              >
+                <option value="g">Grami · g</option>
+                <option value="ml">Mililitri · ml</option>
+              </select>
+            </label>
+          </div>
+          <button className="primary full">
+            Sačuvajte proizvod i odaberite porciju <ArrowRight size={16} />
+          </button>
+        </form>
+      ) : mode === "barcode" ? (
         <div className="barcode-flow">
           {product ? (
             <form
@@ -392,21 +600,39 @@ export function MealComposer({
                   <small> kcal</small>
                 </strong>
               </div>
-              <p className="food-footnote">
-                Podaci:{" "}
-                <a href={product.source} target="_blank" rel="noreferrer">
-                  Open Food Facts
-                </a>{" "}
-                ·{" "}
-                <a
-                  href="https://opendatacommons.org/licenses/odbl/1-0/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  ODbL
-                </a>
-                . Provjerite deklaraciju na pakovanju.
-              </p>
+              {product.source === "device" ? (
+                <p className="food-footnote">
+                  Podaci s vaše deklaracije · sačuvani na ovom uređaju.{" "}
+                  <button
+                    type="button"
+                    className="text-link"
+                    onClick={() => {
+                      setCustomName(product.name);
+                      setCustomCalories(String(product.caloriesPer100));
+                      setCustomUnit(product.unit);
+                      changeMode("custom");
+                    }}
+                  >
+                    Uredite deklaraciju
+                  </button>
+                </p>
+              ) : (
+                <p className="food-footnote">
+                  Podaci:{" "}
+                  <a href={product.source} target="_blank" rel="noreferrer">
+                    Open Food Facts
+                  </a>{" "}
+                  ·{" "}
+                  <a
+                    href="https://opendatacommons.org/licenses/odbl/1-0/"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    ODbL
+                  </a>
+                  . Provjerite deklaraciju na pakovanju.
+                </p>
+              )}
               <button
                 className="primary full"
                 disabled={
@@ -504,6 +730,16 @@ export function MealComposer({
                 Kamera čita kod na vašem uređaju. Šaljemo samo broj proizvoda u
                 bazu Open Food Facts. Za hranu bez barkoda koristite ručni unos.
               </p>
+              <button
+                className="text-link"
+                onClick={() => {
+                  setCustomName("");
+                  setCustomCalories("");
+                  changeMode("custom");
+                }}
+              >
+                Nema proizvoda? Sačuvajte deklaraciju <Plus size={15} />
+              </button>
             </>
           )}
         </div>

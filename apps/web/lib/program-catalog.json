@@ -1,0 +1,1613 @@
+[
+  {
+    "id": "6617bd7a-7728-4a41-be4a-a90ea261b0d4",
+    "title": "Program za početnike u teretani",
+    "category": "training",
+    "summary": "Tri treninga za upoznavanje teretane i postepeno razvijanje snage.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/6617bd7a-7728-4a41-be4a-a90ea261b0d4",
+    "days": [
+      {
+        "number": 1,
+        "title": "Prsa,srednje rame i biceps",
+        "exercises": [
+          {
+            "name": null,
+            "prescription": "1 × 10",
+            "section": "Zagrijavanje",
+            "rest": null
+          },
+          {
+            "name": "Arm Circles (Kruženje rukama)",
+            "prescription": "1 × 8-12",
+            "section": "Pripremni dio",
+            "rest": null
+          },
+          {
+            "name": "Hip Circles (Kruženje kukovima)",
+            "prescription": "1 × 8-12",
+            "section": "Pripremni dio",
+            "rest": null
+          },
+          {
+            "name": null,
+            "prescription": "1 × 8-12",
+            "section": "Pripremni dio",
+            "rest": 8
+          },
+          {
+            "name": "Ankle Rotations (Kruženje gležnjevima)",
+            "prescription": "1 × 8-12",
+            "section": "Pripremni dio",
+            "rest": null
+          },
+          {
+            "name": "Flat Machine Chest Press (Narrow Grip)",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Flat Machine Chest Press (Wide Grip)",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Barbell Front Raise",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": null,
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Alternating Hammer Curl",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "EZ Bar Curl",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Sit Ups",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Treadmill — Hodanje S Nagibom (Incline walking)",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Stacionarni Bicikl — Upright (Sobni bicikl — uspravan)",
+            "prescription": "1 × 10-15",
+            "section": "Kardio",
+            "rest": null
+          }
+        ],
+        "meals": []
+      },
+      {
+        "number": 2,
+        "title": "Noge i ramena",
+        "exercises": [
+          {
+            "name": "Stacionarni Bicikl — Upright (Sobni bicikl — uspravan)",
+            "prescription": "1 × 10",
+            "section": "Zagrijavanje",
+            "rest": null
+          },
+          {
+            "name": null,
+            "prescription": "3 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": 60
+          },
+          {
+            "name": "Lying Leg Curl (Machine)",
+            "prescription": "3 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": 60
+          },
+          {
+            "name": null,
+            "prescription": "3 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": 60
+          },
+          {
+            "name": null,
+            "prescription": "3 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": 60
+          },
+          {
+            "name": "Hip Adduction (Machine)",
+            "prescription": "3 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": 60
+          },
+          {
+            "name": "Leg Press Calf Raise",
+            "prescription": "3 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": 60
+          },
+          {
+            "name": "Dumbbell Shoulder Press (Sjedeći potisak bučicama)",
+            "prescription": "3 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": 60
+          },
+          {
+            "name": null,
+            "prescription": "3 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": 60
+          },
+          {
+            "name": null,
+            "prescription": "3 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": 60
+          },
+          {
+            "name": "Cable Reverse Fly",
+            "prescription": "3 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": 60
+          },
+          {
+            "name": "Treadmill — Hodanje S Nagibom (Incline walking)",
+            "prescription": "1 × 10-15",
+            "section": "Zagrijavanje",
+            "rest": 60
+          }
+        ],
+        "meals": []
+      },
+      {
+        "number": 3,
+        "title": "Ledja, zadnje rame i triceps",
+        "exercises": [
+          {
+            "name": null,
+            "prescription": "1 × 10",
+            "section": "Zagrijavanje",
+            "rest": null
+          },
+          {
+            "name": "Chest Supported Lat Machine Row",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Machine Neutral Grip Lat Pulldown",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": null,
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Machine Rear Delt Fly",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Triceps Pushdown",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Cable Triceps Kickback",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Machine High Lat Row",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": null,
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Ski Erg (Skijaški ergometar)",
+            "prescription": "1 × 10-15",
+            "section": "Kardio",
+            "rest": null
+          }
+        ],
+        "meals": []
+      }
+    ],
+    "supplements": [],
+    "minutes": null,
+    "needsReview": true,
+    "image": "/programs/program-01.webp"
+  },
+  {
+    "id": "cdd3774d-bbed-4ca4-bb0c-a50309890d3b",
+    "title": "Kućni program za mobilnost, drzanje i snagu djece od 4 do 9 godina",
+    "category": "training",
+    "summary": "Dva kućna treninga za ravnotežu, kontrolu pokreta i držanje.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/cdd3774d-bbed-4ca4-bb0c-a50309890d3b",
+    "days": [
+      {
+        "number": 1,
+        "title": "Stopala,mobilnost i postura",
+        "exercises": [
+          {
+            "name": "Ankle Rotations (Kruženje gležnjevima)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Single-Leg Heel Raise (Jednonožno podizanje na prste)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Towel Toe Scrunches (Skupljanje ručnika prstima stopala)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Single-Leg Balance (Jednożna ravnoteža)",
+            "prescription": "2 × 20s",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Bodyweight Squat (Čučanj s tjelesnom težinom)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Cat-Cow (Mačka-krava — aktivna fleksija/ekstenzija kičme)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Bird Dog (Pas koji traži prtičicu)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Dead Bug (Mrtva buba)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Child's Pose (Pozicija djeteta)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          }
+        ],
+        "meals": []
+      },
+      {
+        "number": 2,
+        "title": "Core, ledja i cijelo tijelo",
+        "exercises": [
+          {
+            "name": "Arm Circles (Kruženje rukama)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Wall Angel (Anđeo uz zid)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Wall Push-Up Plus (Skleka uz zid s protrakcijom — serratus)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Superman",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Prone Y Raise",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "High Plank — Dlanovi (Plank na dlanovima)",
+            "prescription": "2 × 20s",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Reverse Lunge (Iskorak unazad)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Chest Stretch — Ruke Iza Leđa (Stretch prsa — ruke iza leđa)",
+            "prescription": "2 × 10s",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Knee To Chest Stretch (Povlačenje koljena prema grudima)",
+            "prescription": "2 × 4-6",
+            "section": "Glavni dio",
+            "rest": 60
+          }
+        ],
+        "meals": []
+      }
+    ],
+    "supplements": [],
+    "minutes": null,
+    "needsReview": false,
+    "image": "/programs/program-02.webp"
+  },
+  {
+    "id": "02523cf9-e3bb-4256-8a2f-3c6af49241ed",
+    "title": "Ishrana za djecu od 4 do 9 godina",
+    "category": "nutrition",
+    "summary": "Sedam dana ideja za doručak, užine, ručak i večeru.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/02523cf9-e3bb-4256-8a2f-3c6af49241ed",
+    "days": [
+      {
+        "number": 1,
+        "title": "Dan 1",
+        "exercises": [],
+        "meals": [
+          {
+            "name": "Doručak",
+            "time": null,
+            "details": "• jaje pripremljeno na odgovarajući način • hljeb • paradajz ili drugo povrće • jabuka ili drugo voće • voda",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina",
+            "time": null,
+            "details": "• jogurt",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Ručak",
+            "time": null,
+            "details": "• riža • mrkva, grašak ili drugo povrće • voda",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina",
+            "time": null,
+            "details": "• voće",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Večera",
+            "time": null,
+            "details": "• hljeb • krastavac ili drugo povrće • voda",
+            "calories": null,
+            "macros": {}
+          }
+        ]
+      },
+      {
+        "number": 2,
+        "title": "Dan 2",
+        "exercises": [],
+        "meals": [
+          {
+            "name": "Doručak",
+            "time": null,
+            "details": "• mlijeko ili jogurt • banana • nekoliko komadića drugog voća",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina",
+            "time": null,
+            "details": "• komad sir",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Ručak",
+            "time": null,
+            "details": "• krompir • povrće • voda",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina 2",
+            "time": null,
+            "details": "• jogurt",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Večera",
+            "time": null,
+            "details": "• sir • jaje ili drugi odgovarajući izvor proteina • povrće",
+            "calories": null,
+            "macros": {}
+          }
+        ]
+      },
+      {
+        "number": 3,
+        "title": "Dan 3",
+        "exercises": [],
+        "meals": [
+          {
+            "name": "Doručak",
+            "time": null,
+            "details": "• sir • jaje • paradajz • voda",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina 1",
+            "time": null,
+            "details": "• jogurt",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Ručak",
+            "time": null,
+            "details": "• krompir • povrće • voda",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina 2",
+            "time": null,
+            "details": "• mlijeko ili jogurt",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Večera",
+            "time": null,
+            "details": "• hljeb • jaje ili sir",
+            "calories": null,
+            "macros": {}
+          }
+        ]
+      },
+      {
+        "number": 4,
+        "title": "Dan 4",
+        "exercises": [],
+        "meals": [
+          {
+            "name": "Doručak",
+            "time": null,
+            "details": "• hljeb • povrće • voće",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina 1",
+            "time": null,
+            "details": "• mandarina • jagode • jabuka",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Ručak",
+            "time": null,
+            "details": "• piletina ili mljeveno meso • paradajz sos • povrće • voda",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina 2",
+            "time": null,
+            "details": "• voće",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Večera",
+            "time": null,
+            "details": "• krompir ili hljeb • povrće",
+            "calories": null,
+            "macros": {}
+          }
+        ]
+      },
+      {
+        "number": 5,
+        "title": "Dan 5",
+        "exercises": [],
+        "meals": [
+          {
+            "name": "Doručak",
+            "time": null,
+            "details": "• zobene pahuljice • voće",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina 1",
+            "time": null,
+            "details": "• komad sira",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Ručak",
+            "time": null,
+            "details": "• meso po želji • hljeb • povrće",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina 2",
+            "time": null,
+            "details": "• banana • mlijeko ili jogurt • voće",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Večera",
+            "time": null,
+            "details": "• hljeb • sir • puretina ili jaje • povrće",
+            "calories": null,
+            "macros": {}
+          }
+        ]
+      },
+      {
+        "number": 6,
+        "title": "Dan 6",
+        "exercises": [],
+        "meals": [
+          {
+            "name": "Doručak",
+            "time": null,
+            "details": "• domaće palačinke • jogurt • voće",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina 1",
+            "time": null,
+            "details": "• sladoled",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Rucak",
+            "time": null,
+            "details": "• piletina ili drugo meso • krompir ili riža • povrće • voda",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina 2",
+            "time": null,
+            "details": "• jogurt • voće",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Večera",
+            "time": null,
+            "details": "• tijesto • paradajz sos • sir • piletinu ili puretinu • povrće po izboru",
+            "calories": null,
+            "macros": {}
+          }
+        ]
+      },
+      {
+        "number": 7,
+        "title": "Dan 7",
+        "exercises": [],
+        "meals": [
+          {
+            "name": "Doručak",
+            "time": null,
+            "details": "• jaja • hljeb • sir • voće",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina 1",
+            "time": null,
+            "details": "Boje prirode 🌈 Odaberite dvije različite vrste voća.",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Ručak",
+            "time": null,
+            "details": "• meso ili riba • krompir, riža ili drugi izvor ugljikohidrata • povrće • voda",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Uzina 2",
+            "time": null,
+            "details": "Slatki trenutak 🍫 Jedna manja porcija omiljenog deserta ili slatkiša, uz voće po želji.",
+            "calories": null,
+            "macros": {}
+          },
+          {
+            "name": "Večera",
+            "time": null,
+            "details": "• supa • sendvič sa sirom i jajetom • povrće",
+            "calories": null,
+            "macros": {}
+          }
+        ]
+      }
+    ],
+    "supplements": [],
+    "minutes": null,
+    "needsReview": false,
+    "image": "/programs/program-03.webp"
+  },
+  {
+    "id": "0913b918-04c6-4c27-88b9-0c32db620869",
+    "title": "Program za djecu od 7 do 9 godina",
+    "category": "training",
+    "summary": "Pokret i igra za djecu od sedam do devet godina.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/0913b918-04c6-4c27-88b9-0c32db620869",
+    "days": [],
+    "supplements": [],
+    "minutes": null,
+    "needsReview": true,
+    "image": "/programs/program-04.webp"
+  },
+  {
+    "id": "14edfe57-c40d-45e8-bea3-87e0fdd72d5f",
+    "title": "Program za djecu od 4 do 6 godina",
+    "category": "training",
+    "summary": "Aktivna igra i osnovni pokreti za djecu od četiri do šest godina.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/14edfe57-c40d-45e8-bea3-87e0fdd72d5f",
+    "days": [],
+    "supplements": [],
+    "minutes": null,
+    "needsReview": true,
+    "image": "/programs/program-05.webp"
+  },
+  {
+    "id": "d4f6e60a-6944-43f2-94ed-53220c6ee5a9",
+    "title": "Pametna suplementacija za osobe 60+",
+    "category": "supplements",
+    "summary": "Pregled suplemenata za razgovor sa stručnjakom nakon šezdesete.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/d4f6e60a-6944-43f2-94ed-53220c6ee5a9",
+    "days": [],
+    "supplements": [
+      {
+        "name": "VITAMIN D3",
+        "dose": "600IU",
+        "time": "Ujutru uz doručak(da sadrzi masti)"
+      },
+      {
+        "name": "VITAMIN B12",
+        "dose": "prema individualnoj potrebi / nalazu",
+        "time": "Ujutru"
+      },
+      {
+        "name": "PROTEIN",
+        "dose": "30g",
+        "time": "Nakon treninga, ili izmedju obroka"
+      },
+      {
+        "name": "OMEGA 3",
+        "dose": "Individualno",
+        "time": "Uz obrok"
+      },
+      {
+        "name": "MAGNEZIJ",
+        "dose": "Prema potrebi i obliku preparata",
+        "time": "Pred spavanje"
+      },
+      {
+        "name": "KALCIJ",
+        "dose": "Individualno",
+        "time": "Uz obrok"
+      }
+    ],
+    "minutes": null,
+    "needsReview": true,
+    "image": "/programs/program-06.webp"
+  },
+  {
+    "id": "e3493136-c6ea-499f-836d-82ffc851a0e6",
+    "title": "Lagani dnevni jelovnik za osobe 60+",
+    "category": "nutrition",
+    "summary": "Pet jednostavnih obroka s navedenim količinama i nutritivnim vrijednostima.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/e3493136-c6ea-499f-836d-82ffc851a0e6",
+    "days": [
+      {
+        "number": 1,
+        "title": "Dan 1",
+        "exercises": [],
+        "meals": [
+          {
+            "name": "Dorucak",
+            "time": "08:00-09:00",
+            "details": "2 jaja, 50 g integralnog hljeba, 150 g jogurta, 150 g paradajza + krastavac",
+            "calories": 390,
+            "macros": {
+              "P": 24,
+              "C": 31,
+              "F": 18
+            }
+          },
+          {
+            "name": "Uzina 1",
+            "time": "10:30-11:30",
+            "details": "1 jabuka (150 g), 15 g neslanih badema",
+            "calories": 165,
+            "macros": {
+              "P": 3,
+              "C": 24,
+              "F": 8
+            }
+          },
+          {
+            "name": "Rucak",
+            "time": "13:30-14:30",
+            "details": "130 g pilećih prsa, 200 g kuhanog krompira, 200 g salate/povrća, 10 g maslinovog ulja",
+            "calories": 510,
+            "macros": {
+              "P": 47,
+              "C": 41,
+              "F": 18
+            }
+          },
+          {
+            "name": "Uzina 2",
+            "time": "16:30-17:30",
+            "details": "200 g kefira, 100 g bobičastog voća",
+            "calories": 150,
+            "macros": {
+              "P": 8,
+              "C": 18,
+              "F": 5
+            }
+          },
+          {
+            "name": "Večera",
+            "time": "19:00-20:00",
+            "details": "120 g bijele ribe, 250 g povrća, 50 g integralnog hljeba, 5 g maslinovog ulja",
+            "calories": 360,
+            "macros": {
+              "P": 34,
+              "C": 28,
+              "F": 10
+            }
+          }
+        ]
+      }
+    ],
+    "supplements": [],
+    "minutes": null,
+    "needsReview": false,
+    "image": "/programs/program-07.webp"
+  },
+  {
+    "id": "d2c9672d-16c7-49a6-a292-4e76ac15c0ac",
+    "title": "Trening za osobe 60+",
+    "category": "training",
+    "summary": "Uvodni pokreti i vježbe snage prilagođeni početnom nivou.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/d2c9672d-16c7-49a6-a292-4e76ac15c0ac",
+    "days": [
+      {
+        "number": 1,
+        "title": "FOUNDATION",
+        "exercises": [
+          {
+            "name": "Neck Rolls (Kruženje glavom — zagrijavanje vrata)",
+            "prescription": "1 × 8-12",
+            "section": "Uvodni dio",
+            "rest": 60
+          },
+          {
+            "name": "Hip Circles (Kruženje kukovima)",
+            "prescription": "1 × 8-12",
+            "section": "Uvodni dio",
+            "rest": 60
+          },
+          {
+            "name": "Thoracic Rotation — Dinamička (Dinamička torakalna rotacija)",
+            "prescription": "1 × 8-12",
+            "section": "Uvodni dio",
+            "rest": 60
+          },
+          {
+            "name": "Torso Rotations (Rotacije torza)",
+            "prescription": "1 × 8-12",
+            "section": "Uvodni dio",
+            "rest": 60
+          },
+          {
+            "name": "Leg Swings — Sagitalni (Dinamičko mahanje nogom naprijed-nazad)",
+            "prescription": "1 × 8-12",
+            "section": "Uvodni dio",
+            "rest": 60
+          },
+          {
+            "name": "Leg Swings — Frontalni (Dinamičko mahanje nogom bočno)",
+            "prescription": "1 × 8-12",
+            "section": "Uvodni dio",
+            "rest": 60
+          },
+          {
+            "name": "Bodyweight Squat (Čučanj s tjelesnom težinom)",
+            "prescription": "2 × 2-10",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Knee Push-Up (Skleka s koljenima)",
+            "prescription": "2 × 2-10",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": null,
+            "prescription": "",
+            "section": "Kardio",
+            "rest": null
+          }
+        ],
+        "meals": []
+      }
+    ],
+    "supplements": [],
+    "minutes": null,
+    "needsReview": true,
+    "image": "/programs/program-08.webp"
+  },
+  {
+    "id": "6e65e0f1-1575-4096-9944-cb6434e5149a",
+    "title": "Prehrana za povećanje mišićne mase",
+    "category": "nutrition",
+    "summary": "Pet obroka s rasporedom, količinama i makronutrijentima.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/6e65e0f1-1575-4096-9944-cb6434e5149a",
+    "days": [
+      {
+        "number": 1,
+        "title": "Dan 1",
+        "exercises": [],
+        "meals": [
+          {
+            "name": "Doručak",
+            "time": "08:00",
+            "details": "• 100 g zobenih pahuljica • 30 g whey proteina • 300 ml mlijeka (2,8 % m.m.) • 1 banana (120 g) • 20 g maslaca od kikirikija",
+            "calories": 820,
+            "macros": {
+              "P": 51,
+              "C": 104,
+              "F": 22
+            }
+          },
+          {
+            "name": "Medjuobrok 1",
+            "time": "11:00",
+            "details": "• 150 g pečenih pilećih prsa • 100 g integralnog kruha • 20 g svježeg sira",
+            "calories": 560,
+            "macros": {
+              "P": 56,
+              "C": 49,
+              "F": 8
+            }
+          },
+          {
+            "name": "Ručak",
+            "time": "14:30",
+            "details": "• 200 g nemasne junetine • 100 g sirove riže (≈300 g kuhane) • 200 g povrća • 10 ml maslinovog ulja",
+            "calories": 760,
+            "macros": {
+              "P": 55,
+              "C": 83,
+              "F": 20
+            }
+          },
+          {
+            "name": "Medjuobrok 2",
+            "time": "17:30",
+            "details": "• 250 g grčkog jogurta • 30 g oraha",
+            "calories": 380,
+            "macros": {
+              "P": 28,
+              "C": 14,
+              "F": 22
+            }
+          },
+          {
+            "name": "Večera",
+            "time": "20:30",
+            "details": "• 200 g lososa • 300 g pečenog krumpira • 150 g salate • 10 ml maslinovog ulja",
+            "calories": 640,
+            "macros": {
+              "P": 48,
+              "C": 53,
+              "F": 28
+            }
+          }
+        ]
+      }
+    ],
+    "supplements": [],
+    "minutes": null,
+    "needsReview": false,
+    "image": "/programs/program-09.webp"
+  },
+  {
+    "id": "e2d92b19-8da1-4c16-a17d-ec90c12a124f",
+    "title": "Osnovna suplementacija za gubitak masnog tkiva",
+    "category": "supplements",
+    "summary": "Referentni pregled suplemenata uz plan prehrane i treninga.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/e2d92b19-8da1-4c16-a17d-ec90c12a124f",
+    "days": [],
+    "supplements": [
+      {
+        "name": "Kofein",
+        "dose": "100-200mg",
+        "time": "Prije treninga, 30-45min"
+      },
+      {
+        "name": "Whey protein",
+        "dose": "20-40gr",
+        "time": "Nakon treninga"
+      },
+      {
+        "name": "L-karnitin",
+        "dose": "1500-3000mg",
+        "time": "Prije treninga, 30-45min"
+      },
+      {
+        "name": "Citrulin malat",
+        "dose": "6-8g",
+        "time": "Prije treninga, 30-45min"
+      },
+      {
+        "name": "EAA",
+        "dose": "10-15g",
+        "time": "Tokom treninga"
+      }
+    ],
+    "minutes": null,
+    "needsReview": true,
+    "image": "/programs/program-10.webp"
+  },
+  {
+    "id": "b8391a79-c68f-409c-acbf-af3430775dc9",
+    "title": "Zagrijavanje i mobilnost gornjeg dijela tijela",
+    "category": "training",
+    "summary": "Kratka rutina pripreme i pokretljivosti gornjeg dijela tijela.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/b8391a79-c68f-409c-acbf-af3430775dc9",
+    "days": [
+      {
+        "number": 1,
+        "title": "Trening",
+        "exercises": [
+          {
+            "name": "Arm Circles (Kruženje rukama)",
+            "prescription": "1 × 15-20",
+            "section": "Glavni dio",
+            "rest": null
+          },
+          {
+            "name": "SHOULDER CARs (Kružne artikulacijske rotacije ramena)",
+            "prescription": "1 × 15-20",
+            "section": "Glavni dio",
+            "rest": null
+          },
+          {
+            "name": "Thread The Needle (Provlačenje igle)",
+            "prescription": "1 × 15-20",
+            "section": "Glavni dio",
+            "rest": null
+          },
+          {
+            "name": "Cat-Cow (Mačka-krava — aktivna fleksija/ekstenzija kičme)",
+            "prescription": "1 × 15-20",
+            "section": "Glavni dio",
+            "rest": null
+          },
+          {
+            "name": "Scapular Activation — Band Pull-Apart (Aktivacija skapule — razvlačenje trake)",
+            "prescription": "1 × 15-20",
+            "section": "Glavni dio",
+            "rest": null
+          },
+          {
+            "name": "Scapular Depression Exercise (Depresija lopatice — vrat rasterećenje)",
+            "prescription": "1 × 15-20",
+            "section": "Glavni dio",
+            "rest": null
+          },
+          {
+            "name": "Wall Slide (Klizanje uz zid)",
+            "prescription": "1 × 15-20",
+            "section": "Glavni dio",
+            "rest": null
+          },
+          {
+            "name": "Serratus Wall Push (Serapusni potisak na zid)",
+            "prescription": "1 × 15-20",
+            "section": "Glavni dio",
+            "rest": null
+          },
+          {
+            "name": "Shoulder Flexion Wall Walk (Hodanje rukama uz zid)",
+            "prescription": "1 × 15-20",
+            "section": "Glavni dio",
+            "rest": null
+          },
+          {
+            "name": "Bird Dog — Aktivacija (Pas koji traži za aktivaciju)",
+            "prescription": "1 × 15-20",
+            "section": "Glavni dio",
+            "rest": null
+          }
+        ],
+        "meals": []
+      }
+    ],
+    "supplements": [],
+    "minutes": 8,
+    "needsReview": false,
+    "image": "/programs/program-11.webp"
+  },
+  {
+    "id": "4f5db165-ca45-43af-9589-cc933c84aa65",
+    "title": "Mobilnost donjeg dijela ledja",
+    "category": "training",
+    "summary": "Rutina pokretljivosti donjeg dijela leđa.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/4f5db165-ca45-43af-9589-cc933c84aa65",
+    "days": [
+      {
+        "number": 1,
+        "title": "Ledja",
+        "exercises": [
+          {
+            "name": "Thoracic Cat-Cow (Torakalna mačka-krava)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Half Kneeling T-Spine Rotation (Polukleknuti torakalna rotacija)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Supine Twist (Ležeća rotacija kičme)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Bird Dog — Aktivacija (Pas koji traži za aktivaciju)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Child's Pose (Pozicija djeteta)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Knee To Chest Stretch (Povlačenje koljena prema grudima)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Book Opening (Otvaranje knjige)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          }
+        ],
+        "meals": []
+      }
+    ],
+    "supplements": [],
+    "minutes": 15,
+    "needsReview": false,
+    "image": "/programs/program-12.webp"
+  },
+  {
+    "id": "e82a02f5-859d-4774-ba20-87b272c711f6",
+    "title": "Trening na odmoru",
+    "category": "training",
+    "summary": "Tri treninga za održavanje aktivnosti tokom odmora.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/e82a02f5-859d-4774-ba20-87b272c711f6",
+    "days": [
+      {
+        "number": 1,
+        "title": "Kardio",
+        "exercises": [
+          {
+            "name": null,
+            "prescription": "1 × 10min",
+            "section": "Zagrijavanje",
+            "rest": null
+          },
+          {
+            "name": "Zone 2 Trening (Zone 2 aerobni trening)",
+            "prescription": "2 × 10",
+            "section": "Kardio",
+            "rest": 60
+          },
+          {
+            "name": null,
+            "prescription": "1 × 10min",
+            "section": "Hlađenje",
+            "rest": null
+          }
+        ],
+        "meals": []
+      },
+      {
+        "number": 2,
+        "title": "Donji extremiteti-Noge",
+        "exercises": [
+          {
+            "name": null,
+            "prescription": "1 × 10min",
+            "section": "Zagrijavanje",
+            "rest": 10
+          },
+          {
+            "name": "Curtsy Lunge (Iskorak u 'naklon')",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 30
+          },
+          {
+            "name": null,
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 30
+          },
+          {
+            "name": "Lateral Lunge (Bočni iskorak)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 30
+          },
+          {
+            "name": "Bodyweight Squat (Čučanj s tjelesnom težinom)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 30
+          },
+          {
+            "name": "Jump Squat (Skok iz čučnja)",
+            "prescription": "2 × 8-12",
+            "section": "Glavni dio",
+            "rest": 30
+          },
+          {
+            "name": null,
+            "prescription": "1 × 10-15min",
+            "section": "Kardio",
+            "rest": null
+          }
+        ],
+        "meals": []
+      },
+      {
+        "number": 3,
+        "title": "Komplet tijelo-Fukcionalni tip treninga",
+        "exercises": [
+          {
+            "name": null,
+            "prescription": "1 × 10",
+            "section": "Zagrijavanje",
+            "rest": 60
+          },
+          {
+            "name": "Plyometric Push-Up (Pliometrijski sklekovi)",
+            "prescription": "2 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": null
+          },
+          {
+            "name": "Burpee — Kardio (Burpee kao kardio)",
+            "prescription": "2 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": null
+          },
+          {
+            "name": "Mountain Climbers (Planinar — kardio)",
+            "prescription": "2 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": null
+          },
+          {
+            "name": "Squat Jumps — Kardio Serija (Serija squat jumpova)",
+            "prescription": "2 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": null
+          },
+          {
+            "name": "Split Squat Jump (Skok iz split squat pozicije)",
+            "prescription": "2 × 8-12",
+            "section": "Zagrijavanje",
+            "rest": 90
+          },
+          {
+            "name": null,
+            "prescription": "1 × 10",
+            "section": "Kardio",
+            "rest": null
+          }
+        ],
+        "meals": []
+      }
+    ],
+    "supplements": [],
+    "minutes": 30,
+    "needsReview": true,
+    "image": "/programs/program-13.webp"
+  },
+  {
+    "id": "571b1788-115e-4580-b90b-092393f71c5c",
+    "title": "Osnove zdrave prehrane",
+    "category": "nutrition",
+    "summary": "Jednodnevni jelovnik s pet obroka i nutritivnim vrijednostima.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/571b1788-115e-4580-b90b-092393f71c5c",
+    "days": [
+      {
+        "number": 1,
+        "title": "Dan 1",
+        "exercises": [],
+        "meals": [
+          {
+            "name": "Doručak",
+            "time": "08:00",
+            "details": "• 70 g zobenih pahuljica • 200 g grčkog jogurta • 1 banana (120 g)",
+            "calories": 520,
+            "macros": {
+              "P": 28,
+              "C": 74,
+              "F": 11
+            }
+          },
+          {
+            "name": "Medjuobrok 1",
+            "time": "11:00",
+            "details": "• 1 srednja jabuka (180 g) • 30 g badema",
+            "calories": 255,
+            "macros": {
+              "P": 7,
+              "C": 28,
+              "F": 15
+            }
+          },
+          {
+            "name": "Ručak",
+            "time": "14:00",
+            "details": "• 180 g pilećih prsa • 80 g sirove riže (≈240 g kuhane) • 150 g miješane salate • 10 ml maslinovog ulja",
+            "calories": 660,
+            "macros": {
+              "P": 48,
+              "C": 66,
+              "F": 16
+            }
+          },
+          {
+            "name": "Medjuobrok 2",
+            "time": "17:00",
+            "details": "• 200 g posnog svježeg sira",
+            "calories": 170,
+            "macros": {
+              "P": 30,
+              "C": 8,
+              "F": 2
+            }
+          },
+          {
+            "name": "Večera",
+            "time": "20:00",
+            "details": "• 180 g fileta oslića • 250 g kuhanog krumpira • 200 g miješanog povrća • 10 ml maslinovog ulja",
+            "calories": 430,
+            "macros": {
+              "P": 39,
+              "C": 43,
+              "F": 12
+            }
+          }
+        ]
+      }
+    ],
+    "supplements": [],
+    "minutes": null,
+    "needsReview": false,
+    "image": "/programs/program-14.webp"
+  },
+  {
+    "id": "d9da4c88-4dd5-4ef8-bd2e-cb33460e7ae8",
+    "title": "Osnovna suplementacija za povećanje mišićne mase",
+    "category": "supplements",
+    "summary": "Referentni pregled suplemenata za trening snage.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/d9da4c88-4dd5-4ef8-bd2e-cb33460e7ae8",
+    "days": [],
+    "supplements": [
+      {
+        "name": "Kreatin",
+        "dose": "3gr",
+        "time": "Prije treninga"
+      },
+      {
+        "name": "Citrulin",
+        "dose": "5gr",
+        "time": "Prije treninga"
+      },
+      {
+        "name": "Eaa",
+        "dose": "10gr",
+        "time": "Tokom treninga"
+      },
+      {
+        "name": "Protein",
+        "dose": "25 gr",
+        "time": "Nakon treninga"
+      }
+    ],
+    "minutes": null,
+    "needsReview": true,
+    "image": "/programs/program-15.webp"
+  },
+  {
+    "id": "ecdfc9bd-4a63-4abd-bdcf-6baca2d766e1",
+    "title": "Keto 2000kcal",
+    "category": "nutrition",
+    "summary": "Pet obroka iz izvornog keto jelovnika.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/ecdfc9bd-4a63-4abd-bdcf-6baca2d766e1",
+    "days": [
+      {
+        "number": 1,
+        "title": "Dan 1",
+        "exercises": [],
+        "meals": [
+          {
+            "name": "Doručak",
+            "time": "08:00",
+            "details": "• 3 jaja • 30 g cheddar sira • ½ avokada (100 g) • 10 g maslacA",
+            "calories": 580,
+            "macros": {
+              "P": 30,
+              "C": 6,
+              "F": 49
+            }
+          },
+          {
+            "name": "Medjuobrok 1",
+            "time": "11:00",
+            "details": "• 30 g badema",
+            "calories": 175,
+            "macros": {
+              "P": 6,
+              "C": 5,
+              "F": 15
+            }
+          },
+          {
+            "name": "Ručak",
+            "time": "14:00",
+            "details": "• 200 g pilećih prsa • 200 g brokule • 15 g maslaca • 10 ml maslinovog ulja",
+            "calories": 570,
+            "macros": {
+              "P": 67,
+              "C": 10,
+              "F": 25
+            }
+          },
+          {
+            "name": "Medjuobrok 2",
+            "time": "17:00",
+            "details": "• 200 g punomasnog grčkog jogurta • 15 g chia sjemenki",
+            "calories": 260,
+            "macros": {
+              "P": 22,
+              "C": 6,
+              "F": 16
+            }
+          },
+          {
+            "name": "Večera",
+            "time": "20:00",
+            "details": "• 180 g fileta lososa • Zelena salata (100 g) • 10 ml maslinovog ulja",
+            "calories": 420,
+            "macros": {
+              "P": 40,
+              "C": 2,
+              "F": 37
+            }
+          }
+        ]
+      }
+    ],
+    "supplements": [],
+    "minutes": null,
+    "needsReview": false,
+    "image": "/programs/program-16.webp"
+  },
+  {
+    "id": "101d52b5-5b63-47ad-bc6a-4e91e6be5659",
+    "title": "Aktivacija/jačanje donjeg dijela ledja",
+    "category": "training",
+    "summary": "Osam vježbi za kontrolu pokreta i aktivaciju donjeg dijela leđa.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/101d52b5-5b63-47ad-bc6a-4e91e6be5659",
+    "days": [
+      {
+        "number": 1,
+        "title": "Donja ledja",
+        "exercises": [
+          {
+            "name": "Knee To Chest Stretch (Povlačenje koljena prema grudima)",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "McGILL BIRD DOG (Pas koji traži — McGill verzija)",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Prone Press-Up (McKenzie ekstenzija)",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Sphinx To Cobra Progression (Progresija sfinge do kobre)",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Glute Bridge — Rehabilitacijski Progresivni",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Hip Abduction — Rehabilitacijska (Rehabilitacijska abdukcija kuka)",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Hip Hinge — Rehabilitacijska Edukacija (Edukacija hip hinge-a)",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          },
+          {
+            "name": "Pelvic Tilt — Neutralna Pozicija (Pelvički nagib — neutralizacija)",
+            "prescription": "3 × 8-12",
+            "section": "Glavni dio",
+            "rest": 60
+          }
+        ],
+        "meals": []
+      }
+    ],
+    "supplements": [],
+    "minutes": 15,
+    "needsReview": false,
+    "image": "/programs/program-17.webp"
+  },
+  {
+    "id": "adb24a2d-78e1-4f14-ba20-8471afb807dd",
+    "title": "Osnovni suplementi",
+    "category": "supplements",
+    "summary": "Pregled proizvoda, količina i vremena uzimanja iz izvornog programa.",
+    "author": "Aldin Rastoder",
+    "source": "https://active-guidance-pro.vercel.app/programs/adb24a2d-78e1-4f14-ba20-8471afb807dd",
+    "days": [],
+    "supplements": [
+      {
+        "name": "L-carnitin",
+        "dose": "5gr",
+        "time": "Prije treninga"
+      },
+      {
+        "name": "C-vitamin",
+        "dose": "1gr",
+        "time": "Prije treninga"
+      },
+      {
+        "name": "Citrulin",
+        "dose": "5gr",
+        "time": "Prije treninga"
+      },
+      {
+        "name": "Eaa",
+        "dose": "10gr",
+        "time": "Tokom treninga"
+      },
+      {
+        "name": "Protein",
+        "dose": "25gr",
+        "time": "Nakon treninga"
+      },
+      {
+        "name": "Glutamin",
+        "dose": "10gr",
+        "time": "Nakon treninga"
+      }
+    ],
+    "minutes": null,
+    "needsReview": true,
+    "image": "/programs/program-18.webp"
+  }
+]

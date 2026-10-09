@@ -69,6 +69,12 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/20261009013213_owner_groups_live_chat.sql",
+      "utf8",
+    ),
+  );
   for (const [id, name] of [
     [member, "Test Member"],
     [other, "Other Member"],
@@ -990,4 +996,180 @@ it("provisions only visibly marked test doctors through a valid admin session", 
     ])
   ).rows[0].v;
   expect(workspace.actor.role).toBe("doctor");
+});
+
+it("registers only client accounts and keeps usernames normalized", async () => {
+  const v = (
+    await db.query<{ v: any }>("select public.username_register($1,$2,$3) v", [
+      "New Member",
+      "New.Member",
+      "strong-fixture-password",
+    ])
+  ).rows[0].v;
+  expect(v.token).toHaveLength(64);
+  const snap = (
+    await db.query<{ v: any }>("select public.username_workspace($1) v", [
+      v.token,
+    ])
+  ).rows[0].v;
+  expect(snap.actor.role).toBe("client");
+  expect(snap.mustChangePassword).toBe(false);
+  await expect(
+    db.query(
+      "select public.username_register('Bad Owner','admin','strong-fixture-password')",
+    ),
+  ).rejects.toThrow("dostupno");
+  await expect(
+    db.query("select public.username_register('Short','short','123')"),
+  ).rejects.toThrow("najmanje 12");
+});
+
+it("requires an invitation acceptance before group chat or owner coaching", async () => {
+  const owner = "00000000-0000-4000-8000-000000000090";
+  await db.query("insert into auth.users values($1,$2,$3)", [
+    owner,
+    "owner@example.test",
+    JSON.stringify({ name: "Owner fixture" }),
+  ]);
+  await db.query("update public.users set role='admin' where id=$1", [owner]);
+  const portal = async (
+    id: string,
+    action = "snapshot",
+    payload: Record<string, unknown> = {},
+  ) => {
+    await act(id);
+    return (
+      await db.query<{ v: any }>(
+        "select public.portal_workspace(null,$1,$2) v",
+        [action, JSON.stringify(payload)],
+      )
+    ).rows[0].v;
+  };
+  await expect(
+    portal(member, "createGroup", { name: "Forbidden" }),
+  ).rejects.toThrow("vlasnik");
+  const g = await portal(owner, "createGroup", { name: "Test training group" });
+  const groupId = g.groupId;
+  await portal(owner, "inviteGroup", {
+    groupId,
+    scope: "single",
+    userId: member,
+  });
+  expect(
+    (await portal(member)).groups.find((g: any) => g.id === groupId).status,
+  ).toBe("invited");
+  await expect(
+    portal(member, "groupMessage", { groupId, text: "Too early" }),
+  ).rejects.toThrow("prihvatite");
+  await expect(portal(other, "snapshot", { groupId })).rejects.toThrow(
+    "nije dostupna",
+  );
+  await portal(member, "respondInvite", { groupId, response: "active" });
+  expect((await portal(owner)).coachingClients).toContain(member);
+  await portal(owner, "groupMessage", {
+    groupId,
+    text: "Welcome to the group",
+  });
+  await portal(member, "groupMessage", { groupId, text: "Thank you" });
+  expect(
+    (await portal(member, "snapshot", { groupId })).messages.map(
+      (m: any) => m.body,
+    ),
+  ).toEqual(["Welcome to the group", "Thank you"]);
+  expect((await portal(other)).groups.some((g: any) => g.id === groupId)).toBe(
+    false,
+  );
+  await portal(owner, "inviteGroup", { groupId, scope: "all" });
+  expect(
+    (await portal(member)).groups.find((g: any) => g.id === groupId).status,
+  ).toBe("active");
+  expect(
+    (await portal(other)).groups.find((g: any) => g.id === groupId).status,
+  ).toBe("invited");
+  await portal(owner, "ownerMessage", {
+    recipientId: member,
+    text: "Personal coaching message",
+  });
+  expect((await portal(owner)).directMessages.at(-1).body).toBe(
+    "Personal coaching message",
+  );
+  await expect(
+    portal(owner, "ownerMessage", {
+      recipientId: other,
+      text: "Not connected",
+    }),
+  ).rejects.toThrow();
+  await portal(member, "leaveGroup", { groupId });
+  await expect(portal(member, "snapshot", { groupId })).rejects.toThrow(
+    "nije dostupna",
+  );
+  await expect(
+    portal(member, "groupMessage", { groupId, text: "No access" }),
+  ).rejects.toThrow("prihvatite");
+  await act(owner);
+  await db.exec("set role anon");
+  await expect(
+    db.query("select * from public.group_messages"),
+  ).rejects.toThrow();
+  await db.exec("reset role");
+  expect(
+    (
+      await db.query(
+        "select * from public.medication_access where expert_id=$1",
+        [owner],
+      )
+    ).rows,
+  ).toHaveLength(0);
+});
+
+it("rotates recovery codes, revokes old sessions and rejects reuse", async () => {
+  const registered = (
+    await db.query<{ v: any }>(
+      "select public.username_register('Recover Member','recover.member','first-fixture-password') v",
+    )
+  ).rows[0].v;
+  expect(registered.recoveryCode).toHaveLength(64);
+  expect(
+    (
+      await db.query<{ v: any }>(
+        "select public.username_recover('recover.member',null,'new-fixture-password') v",
+      )
+    ).rows[0].v,
+  ).toHaveProperty("error");
+  const recovered = (
+    await db.query<{ v: any }>("select public.username_recover($1,$2,$3) v", [
+      "recover.member",
+      registered.recoveryCode,
+      "second-fixture-password",
+    ])
+  ).rows[0].v;
+  expect(recovered.ok).toBe(true);
+  expect(recovered.recoveryCode).toHaveLength(64);
+  expect(recovered.recoveryCode).not.toBe(registered.recoveryCode);
+  await expect(
+    db.query("select public.username_workspace($1)", [registered.token]),
+  ).rejects.toThrow("istekla");
+  expect(
+    (
+      await db.query<{ v: any }>("select public.username_recover($1,$2,$3) v", [
+        "recover.member",
+        registered.recoveryCode,
+        "third-fixture-password",
+      ])
+    ).rows[0].v,
+  ).toHaveProperty("error");
+  expect(
+    (
+      await db.query<{ v: any }>(
+        "select public.username_login('recover.member','first-fixture-password') v",
+      )
+    ).rows[0].v,
+  ).toHaveProperty("error");
+  expect(
+    (
+      await db.query<{ v: any }>(
+        "select public.username_login('recover.member','second-fixture-password') v",
+      )
+    ).rows[0].v.ok,
+  ).toBe(true);
 });

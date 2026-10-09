@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./interface.css";
 import "./mobile-first.css";
+import "./premium-workspace.css";
 import { GeistSans } from "geist/font/sans";
 import InstallApp from "@/components/install-app";
 const themeScript = `(function(){try{var t=localStorage.getItem('alda-theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})()`;

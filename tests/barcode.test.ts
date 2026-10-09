@@ -101,3 +101,18 @@ it("does not substitute estimated or prepared nutrition for package values", () 
       }),
     ).toBeNull();
 });
+
+it("expands UPC-E and parses GS1 application identifiers without confusing EAN-8", async () => {
+  const { expandUpce, productCodeVariants } =
+    await import("../apps/web/lib/barcode");
+  expect(expandUpce("01234558")).toBe("012345000058");
+  expect(productCode("01234558", "UPC_E")).toBe("012345000058");
+  expect(productCode("01234559", "UPC_E")).toBeNull();
+  expect(productCode("(01)03017620422003(17)280101")).toBe("03017620422003");
+  expect(productCode("]C1010301762042200317280101")).toBe("03017620422003");
+  expect(productCodeVariants("03017620422003")).toEqual([
+    "03017620422003",
+    "3017620422003",
+  ]);
+  expect(productCodeVariants("13017620422000")).toEqual(["13017620422000"]);
+});
