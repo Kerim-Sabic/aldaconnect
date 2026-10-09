@@ -19,3 +19,9 @@ Fictional localhost fixtures were used for responsive dashboard/nutrition/workou
 ## Boundaries
 
 Physical phone camera scanning and iOS/Android home-screen installation require device acceptance. This release does not activate billing or deferred clinical modules. The new source repository is Kerim-Sabic/aldaconnect; the old custom-domain deployment is separate.
+
+## Hosting verification
+
+Pushed main to `https://github.com/Kerim-Sabic/aldaconnect` (application commit f55883e). The new `aldaconnect` Vercel project is linked to that repository under kerimsabic-6594s-projects, with Next.js and root apps/web. Production deployment dpl_HkrJg14bM7Jwd5egxLzcteL5q66w reached Ready in 1m 2s at https://aldaconnect.vercel.app. Cloud configuration, release identity, standalone manifest and public sign-in rendering were verified. Existing Supabase publishable settings were configured for all Vercel environments; local fixture flags were not enabled.
+
+The connected browser account cannot access the existing Supabase backend dashboard. Its email templates still use the earlier Site URL, so email confirmation/recovery destination changes remain a backend-owner task. Existing username sign-in uses the same backend. No live user credential or private record was used for QA.
