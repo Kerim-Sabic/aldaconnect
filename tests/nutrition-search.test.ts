@@ -41,7 +41,7 @@ it("requires the client own context, including for search", async () => {
 it("returns only products with valid codes and declared energy", async () => {
   vi.mocked(fetch).mockResolvedValue(
     Response.json({
-      products: [
+      hits: [
         {
           code: "3017620422003",
           product_name: "Product",
@@ -60,7 +60,7 @@ it("returns only products with valid codes and declared energy", async () => {
   expect(res.headers.get("cache-control")).toContain("no-store");
   expect((await res.json()).products).toHaveLength(1);
   expect(String(vi.mocked(fetch).mock.calls[0][0])).toContain(
-    "world.openfoodfacts.",
+    "search.openfoodfacts.org",
   );
   await GET(request());
   expect(fetch).toHaveBeenCalledTimes(1);
@@ -68,4 +68,25 @@ it("returns only products with valid codes and declared energy", async () => {
 it("keeps provider failures recoverable", async () => {
   vi.mocked(fetch).mockResolvedValue(new Response("Down", { status: 503 }));
   expect((await GET(request())).status).toBe(502);
+});
+
+it("falls back to legacy full-text search when the dedicated index is unavailable", async () => {
+  vi.mocked(fetch)
+    .mockResolvedValueOnce(new Response("Unavailable", { status: 503 }))
+    .mockResolvedValueOnce(
+      Response.json({
+        products: [
+          {
+            code: "3017620422003",
+            product_name: "Product",
+            nutriments: { "energy-kcal_100g": 539 },
+          },
+        ],
+      }),
+    );
+  const res = await GET(request());
+  expect(res.status).toBe(200);
+  expect((await res.json()).products).toHaveLength(1);
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(String(vi.mocked(fetch).mock.calls[1][0])).toContain("cgi/search.pl");
 });

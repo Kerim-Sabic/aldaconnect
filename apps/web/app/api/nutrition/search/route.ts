@@ -68,22 +68,61 @@ export async function GET(req: NextRequest) {
     headers.Authorization =
       "Basic " + Buffer.from("off:off").toString("base64");
   try {
-    const res = await fetch(url, {
-      headers,
-      cache: "no-store",
-      signal: AbortSignal.timeout(12000),
-    });
-    if (!res.ok) throw Error();
-    const raw = await res.json();
-    const products: FoodProduct[] = (
-      Array.isArray(raw.products) ? raw.products : []
-    ).flatMap((p: Record<string, unknown>) => {
-      const code = productCode(String(p.code || ""));
-      const product = code
-        ? readFoodProduct(code, { status: 1, product: p })
-        : null;
-      return product ? [product] : [];
-    });
+    const legacySearch = async () => {
+      const response = await fetch(url, {
+        headers,
+        cache: "no-store",
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!response.ok) throw Error("Catalog unavailable");
+      const raw = await response.json();
+      if (!Array.isArray(raw.products)) throw Error("Invalid catalog response");
+      return raw.products as Record<string, unknown>[];
+    };
+    let matches: Record<string, unknown>[];
+    if (staging) matches = await legacySearch();
+    else {
+      try {
+        const response = await fetch(
+          "https://search.openfoodfacts.org/search",
+          {
+            method: "POST",
+            headers: { ...headers, "Content-Type": "application/json" },
+            cache: "no-store",
+            signal: AbortSignal.timeout(4000),
+            body: JSON.stringify({
+              q: query,
+              page_size: 16,
+              fields: [
+                "code",
+                "product_name",
+                "product_name_bs",
+                "generic_name",
+                "brands",
+                "nutriments",
+                "serving_quantity",
+                "serving_quantity_unit",
+              ],
+            }),
+          },
+        );
+        if (!response.ok) throw Error("Search unavailable");
+        const raw = await response.json();
+        if (!Array.isArray(raw.hits)) throw Error("Invalid search response");
+        matches = raw.hits;
+      } catch {
+        matches = await legacySearch();
+      }
+    }
+    const products: FoodProduct[] = matches.flatMap(
+      (p: Record<string, unknown>) => {
+        const code = productCode(String(p.code || ""));
+        const product = code
+          ? readFoodProduct(code, { status: 1, product: p })
+          : null;
+        return product ? [product] : [];
+      },
+    );
     if (cache.size >= 100) cache.delete(cache.keys().next().value!);
     cache.set(key, { products, expires: now + 900000 });
     return reply({ products });
