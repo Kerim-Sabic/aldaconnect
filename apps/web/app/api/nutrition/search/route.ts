@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GET as workspaceSnapshot } from "../../workspace/route";
 import { productCode, readFoodProduct, type FoodProduct } from "@/lib/barcode";
+import { foodCatalog } from "@/lib/supabase/food-catalog";
 export const runtime = "nodejs";
 const cache = new Map<string, { products: FoodProduct[]; expires: number }>();
 const limits = new Map<string, { count: number; reset: number }>();
@@ -23,6 +24,17 @@ export async function GET(req: NextRequest) {
     context.actor.id !== context.clientId
   )
     return reply({ error: "Otvorite svoj korisnički prostor." }, 403);
+  const shared = await foodCatalog("list", { q: query });
+  const community = shared.data?.products ?? [];
+  const merged = (products: FoodProduct[]) => [
+    ...community,
+    ...products.filter(
+      (p) =>
+        !community.some(
+          (c) => c.code.padStart(14, "0") === p.code.padStart(14, "0"),
+        ),
+    ),
+  ];
   const now = Date.now();
   for (const [key, value] of limits) if (value.reset < now) limits.delete(key);
   const member = limits.get(context.actor.id) || {
@@ -36,8 +48,10 @@ export async function GET(req: NextRequest) {
   const key = query.toLocaleLowerCase();
   const existing = cache.get(key);
   if (existing && existing.expires > now)
-    return reply({ products: existing.products });
+    return reply({ products: merged(existing.products) });
   const provider = limits.get("provider") || { count: 0, reset: now + 60000 };
+  if (provider.count >= 8 && community.length)
+    return reply({ products: community });
   if (provider.count >= 8)
     return reply(
       {
@@ -125,8 +139,9 @@ export async function GET(req: NextRequest) {
     );
     if (cache.size >= 100) cache.delete(cache.keys().next().value!);
     cache.set(key, { products, expires: now + 900000 });
-    return reply({ products });
+    return reply({ products: merged(products) });
   } catch {
+    if (community.length) return reply({ products: community });
     return reply(
       {
         error:

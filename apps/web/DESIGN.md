@@ -15,3 +15,5 @@ Dialogs become bottom sheets on phones, with focus trapping, Escape dismissal, b
 The PWA uses the new logo at all icon sizes, standalone display, matching browser chrome, an install entry in settings and platform-specific guidance. Already installed apps suppress the install prompt. Private documents/API responses remain uncached. Only opened workout set logging currently supports queued offline writes; new meals require a connection.
 
 Desktop uses a quiet 224px rail and a two-column daily workspace; narrow desktop and phone layouts reflow without horizontal scrolling. Specialist, admin, onboarding, settings and authentication surfaces inherit the same typography, neutral palette and rounded controls.
+
+The public landing page uses the same identity on a warmer ivory canvas, with one generated architectural photograph and the existing program covers. Landing styles are scoped in `landing.css`. `navigation-catalog.css` adds grouped menus, product catalog forms, the three-step onboarding and in-context group invitation panel using existing workspace tokens. Member/admin overview styling is retained.

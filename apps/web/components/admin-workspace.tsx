@@ -1,7 +1,22 @@
 "use client";
-import { useState } from "react";
-import { ArrowUpRight, ShieldCheck, Users, LogOut } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import {
+  ArrowUpRight,
+  ShieldCheck,
+  Users,
+  LogOut,
+  LayoutDashboard,
+  MessageCircle,
+  MoreHorizontal,
+  X,
+  BookOpen,
+  Package,
+  Settings2,
+  ClipboardList,
+} from "lucide-react";
 import { modules, type Actor } from "@/lib/domain";
+import ProductLibrary from "./product-library";
+import { focusScope } from "./focus-scope";
 import Brand from "./brand";
 import ThemeControl from "./theme-control";
 import OwnerTools from "./owner-tools";
@@ -31,6 +46,31 @@ export default function AdminWorkspace({
 }) {
   const [view, setView] = useState("overview");
   const [query, setQuery] = useState("");
+  const [more, setMore] = useState(false);
+  const menu = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (more && menu.current)
+      return focusScope(menu.current, () => setMore(false));
+  }, [more]);
+  const go = (id: string) => {
+    setView(id);
+    setMore(false);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+  const primary = [
+    { id: "overview", label: "Pregled", icon: LayoutDashboard },
+    { id: "clients", label: "Klijenti", icon: Users },
+    { id: "messages", label: "Poruke", icon: MessageCircle },
+    { id: "groups", label: "Grupe", icon: Users },
+  ];
+  const secondary = [
+    { id: "programs", label: "Programi", icon: BookOpen },
+    { id: "products", label: "Proizvodi", icon: Package },
+    { id: "users", label: "Korisnici i pregledi", icon: Users },
+    { id: "modules", label: "Moduli i dostupnost", icon: Settings2 },
+    { id: "audit", label: "Historija aktivnosti", icon: ClipboardList },
+    { id: "security", label: "Sigurnost računa", icon: ShieldCheck },
+  ];
   const users = data.adminUsers ?? [];
   return (
     <div className="admin-shell">
@@ -42,26 +82,23 @@ export default function AdminWorkspace({
         <h2>{data.actor.name}</h2>
         <p>Pregled platforme</p>
         <nav aria-label="Administracija">
-          {[
-            ["overview", "Pregled"],
-            ["users", "Korisnici i pregledi"],
-            ["modules", "Moduli i dostupnost"],
-            ["audit", "Historija aktivnosti"],
-            ["security", "Sigurnost računa"],
-            ["clients", "Klijenti i planovi"],
-            ["messages", "Poruke"],
-            ["groups", "Trening grupe"],
-            ["programs", "Programi"],
-          ].map(([id, label]) => (
-            <button
-              key={id}
-              className={view === id ? "active" : ""}
-              aria-current={view === id ? "page" : undefined}
-              onClick={() => setView(id)}
-            >
-              {label}
-            </button>
-          ))}
+          {[...primary, ...secondary].map(
+            ({ id, label, icon: Icon }, index) => (
+              <div className="admin-nav-item-wrap" key={id}>
+                {index === 4 && (
+                  <span className="nav-section-label">UPRAVLJANJE</span>
+                )}
+                <button
+                  className={view === id ? "active" : ""}
+                  aria-current={view === id ? "page" : undefined}
+                  onClick={() => go(id)}
+                >
+                  <Icon size={18} />
+                  {label}
+                </button>
+              </div>
+            ),
+          )}
         </nav>
         <button className="text-link" onClick={logout}>
           <LogOut size={16} /> Odjavite se
@@ -72,7 +109,9 @@ export default function AdminWorkspace({
           <span>Administracija</span>
           <ThemeControl />
         </div>
-        {!["clients", "messages", "groups", "programs"].includes(view) && (
+        {!["clients", "messages", "groups", "programs", "products"].includes(
+          view,
+        ) && (
           <>
             <h1>Dobro došli, {data.actor.name}.</h1>
             <p className="muted">
@@ -122,6 +161,7 @@ export default function AdminWorkspace({
             />
           </div>
         )}
+        {view === "products" && <ProductLibrary admin />}
         {view === "overview" && (
           <>
             <div className="admin-stats">
@@ -263,6 +303,70 @@ export default function AdminWorkspace({
           </section>
         )}
       </main>
+      <nav className="admin-phone-nav" aria-label="Glavna navigacija">
+        {primary.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            className={view === id ? "active" : ""}
+            aria-current={view === id ? "page" : undefined}
+            onClick={() => go(id)}
+          >
+            <Icon size={20} />
+            <span>{label}</span>
+          </button>
+        ))}
+        <button
+          className={secondary.some((n) => n.id === view) ? "active" : ""}
+          onClick={() => setMore(true)}
+          aria-expanded={more}
+          aria-haspopup="dialog"
+        >
+          <MoreHorizontal size={21} />
+          <span>Više</span>
+        </button>
+      </nav>
+      {more && (
+        <div className="admin-menu-backdrop" onClick={() => setMore(false)}>
+          <div
+            ref={menu}
+            className="admin-phone-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-menu-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header>
+              <div>
+                <span className="sheet-kicker">ALDA CONNECT</span>
+                <h2 id="admin-menu-title">Vaš radni prostor</h2>
+              </div>
+              <button
+                className="icon-button"
+                aria-label="Zatvorite navigaciju"
+                onClick={() => setMore(false)}
+              >
+                <X size={21} />
+              </button>
+            </header>
+            <div className="admin-menu-links">
+              {secondary.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => go(id)}
+                  aria-current={view === id ? "page" : undefined}
+                >
+                  <Icon size={19} />
+                  {label}
+                  <ArrowUpRight size={16} />
+                </button>
+              ))}
+            </div>
+            <button className="text-link" onClick={logout}>
+              <LogOut size={17} /> Odjavite se
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

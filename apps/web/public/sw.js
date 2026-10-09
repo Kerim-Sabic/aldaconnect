@@ -1,5 +1,5 @@
 /* Network-first documents. Only the public offline page is cached; never records or API responses. */
-const CACHE = 'fitness-public-v4';
+const CACHE = 'fitness-public-v5';
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.add('/offline.html')));
   self.skipWaiting();

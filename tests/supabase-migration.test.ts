@@ -75,6 +75,24 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/20261009023645_shared_food_catalog.sql",
+      "utf8",
+    ),
+  );
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/20261009025824_catalog_conflict_responses.sql",
+      "utf8",
+    ),
+  );
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/20261009030111_catalog_search_validation.sql",
+      "utf8",
+    ),
+  );
   for (const [id, name] of [
     [member, "Test Member"],
     [other, "Other Member"],
@@ -1172,4 +1190,109 @@ it("rotates recovery codes, revokes old sessions and rejects reuse", async () =>
       )
     ).rows[0].v.ok,
   ).toBe(true);
+});
+
+it("shares barcode declarations across accounts without sharing ownership or allowing overwrites", async () => {
+  await act(member);
+  const payload = {
+    code: "3017620422003",
+    product: {
+      name: "Shared test oats",
+      brand: "Fixture",
+      unit: "g",
+      caloriesPer100: 370,
+      protein: 12,
+      carbs: 60,
+      fat: 7,
+      serving: 40,
+      ingredients: "Oats",
+    },
+  };
+  const call = async (action: string, p: unknown) =>
+    (
+      await db.query<{ value: any }>(
+        "select public.food_catalog('', $1, $2::jsonb) value",
+        [action, JSON.stringify(p)],
+      )
+    ).rows[0].value;
+  const saved = await call("save", payload);
+  expect(saved.product.code).toBe("03017620422003");
+  expect(saved.product.canEdit).toBe(true);
+  await act(other);
+  const found = await call("lookup", { code: "03017620422003" });
+  expect(found.product.caloriesPer100).toBe(370);
+  expect(found.product.protein).toBe(12);
+  expect(found.product.canEdit).toBe(false);
+  expect(found.product.created_by).toBeUndefined();
+  const searched = await call("list", { q: "Shared test" });
+  expect(searched.products).toHaveLength(1);
+  expect(searched.products[0].code).toBe("03017620422003");
+  expect((await call("list", { q: "no match" })).products).toHaveLength(0);
+  expect((await call("list", { mine: true })).products).toHaveLength(0);
+  await expect(call("save", { ...payload, version: 1 })).rejects.toThrow(
+    "već postoji",
+  );
+  await call("report", { code: payload.code, reason: "Check the label" });
+  await expect(
+    call("moderate", { code: payload.code, hidden: true }),
+  ).rejects.toThrow("administrator");
+  await act(member);
+  await expect(call("save", { ...payload, version: 3 })).rejects.toThrow(
+    "promijenjen",
+  );
+  const edited = await call("save", {
+    ...payload,
+    version: 1,
+    product: { ...payload.product, caloriesPer100: 380 },
+  });
+  expect(edited.product.version).toBe(2);
+  await expect(
+    call("save", { ...payload, code: "3017620422004" }),
+  ).rejects.toThrow("Barkod");
+  await expect(
+    call("save", {
+      ...payload,
+      version: 2,
+      product: { ...payload.product, protein: null },
+    }),
+  ).rejects.toThrow("Unesite kalorije");
+  await act("");
+  await expect(call("lookup", { code: payload.code })).rejects.toThrow(
+    "Prijavite",
+  );
+});
+
+it("keeps shared product tables private and moderation restricted to the owner", async () => {
+  await db.exec("begin");
+  try {
+    const owner = "ad000000-0000-4000-8000-000000000099";
+    await db.query(
+      "insert into auth.users values($1,'catalog-owner@example.test','{}')",
+      [owner],
+    );
+    await db.query("update public.users set role='admin' where id=$1", [owner]);
+    await act(owner);
+    await db.query("select public.food_catalog('','moderate',$1::jsonb)", [
+      JSON.stringify({ code: "3017620422003", hidden: true }),
+    ]);
+    const list = await db.query<{ value: any }>(
+      "select public.food_catalog('','list','{}') value",
+    );
+    expect(list.rows[0].value.products[0].hidden).toBe(true);
+    expect(list.rows[0].value.products[0].reports[0].reason).toBe(
+      "Check the label",
+    );
+    await act(other);
+    await db.exec("set local role authenticated");
+    const hidden = await db.query<{ value: any }>(
+      "select public.food_catalog('','lookup',$1::jsonb) value",
+      [JSON.stringify({ code: "3017620422003" })],
+    );
+    expect(hidden.rows[0].value.product).toBeNull();
+    await expect(
+      db.query("select * from food_private.products"),
+    ).rejects.toThrow("permission denied");
+  } finally {
+    await db.exec("rollback");
+  }
 });

@@ -1,6 +1,16 @@
 "use client";
-import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Dumbbell,
+  Flame,
+  ChartNoAxesCombined,
+  Heart,
+  Target,
+  LoaderCircle,
+} from "lucide-react";
 import { modules } from "@/lib/domain";
 type Intake = {
   goal: string;
@@ -14,6 +24,54 @@ type Intake = {
   requestedModules: string[];
   schemaVersion: number;
 };
+const goals = [
+  {
+    title: "Snaga i kontinuitet",
+    value: "Razviti snagu i kontinuitet",
+    note: "Gradite naviku koja traje.",
+  },
+  {
+    title: "Bolja kondicija",
+    value: "Poboljšati opću kondiciju",
+    note: "Više energije za svaki dan.",
+  },
+  {
+    title: "Mišićna masa",
+    value: "Izgraditi mišićnu masu",
+    note: "Postepen, dosljedan napredak.",
+  },
+  {
+    title: "Tjelesna masa",
+    value: "Upravljati tjelesnom masom",
+    note: "Pronađite ravnotežu koja vam odgovara.",
+  },
+];
+const tools = [
+  {
+    id: "training",
+    name: "Trening",
+    note: "Vaš plan i zabilježene serije",
+    icon: Dumbbell,
+  },
+  {
+    id: "nutrition",
+    name: "Ishrana",
+    note: "Obroci, barkodovi i hidratacija",
+    icon: Flame,
+  },
+  {
+    id: "progress",
+    name: "Napredak",
+    note: "Pregled vaše dosljednosti",
+    icon: ChartNoAxesCombined,
+  },
+  {
+    id: "recovery",
+    name: "Oporavak",
+    note: "San i svakodnevni osjećaj",
+    icon: Heart,
+  },
+];
 export default function Onboarding({
   selected,
   initial,
@@ -25,7 +83,7 @@ export default function Onboarding({
   initial?: Record<string, unknown>;
   busy: boolean;
   readOnly?: boolean;
-  onSave(intake: Intake, chosen: string[]): Promise<void>;
+  onSave: (intake: Intake, chosen: string[]) => Promise<void>;
 }) {
   const [chosen, setChosen] = useState<string[]>(
     Array.isArray(initial?.requestedModules)
@@ -45,28 +103,23 @@ export default function Onboarding({
     schemaVersion: 2,
     ...initial,
   } as Intake);
-  const steps = [
-    "Vaš prostor",
-    "Vaši ciljevi",
-    ...(chosen.includes("training") ? ["Trening"] : []),
-    ...(chosen.includes("nutrition") ? ["Ishrana"] : []),
-    ...(chosen.includes("recovery") ? ["Oporavak"] : []),
-    "Podrška",
-    "Pregled",
-  ];
-  const [index, setIndex] = useState(0);
-  const step = steps[index] ?? "Pregled";
-  const last = index === steps.length - 1;
+  const [step, setStep] = useState(0);
   const [error, setError] = useState("");
+  const title = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    title.current?.focus({ preventScroll: true });
+    title.current?.closest(".modal")?.scrollTo({ top: 0 });
+  }, [step]);
   const field = (key: keyof Intake, value: string | number) =>
-    setDraft({ ...draft, [key]: value });
+    setDraft((d) => ({ ...d, [key]: value }));
   return (
     <form
+      className="onboarding-clean"
       onSubmit={async (e) => {
         e.preventDefault();
         setError("");
-        if (!last) {
-          setIndex(index + 1);
+        if (step < 2) {
+          setStep((s) => s + 1);
           return;
         }
         try {
@@ -78,267 +131,270 @@ export default function Onboarding({
           );
         } catch {
           setError(
-            "Nije moguće sačuvati. Provjerite vezu i pokušajte ponovo; uneseni podaci su ostali u ovom prozoru.",
+            "Postavke nisu sačuvane. Provjerite vezu i pokušajte ponovo.",
           );
         }
       }}
     >
-      <span className="eyebrow">
-        PRILAGODIMO PROSTOR VAMA · {index + 1}/{steps.length}
-      </span>
-      <div
-        className="onboard-progress"
-        aria-label={`Korak ${index + 1} od ${steps.length}`}
-      >
-        {steps.map((s, i) => (
-          <span className={i <= index ? "done" : ""} key={s} />
+      <div className="onboarding-top">
+        <span className="sheet-kicker">VAŠ POČETAK</span>
+        <span>{step + 1} / 3</span>
+      </div>
+      <div className="onboard-progress" aria-label={`Korak ${step + 1} od 3`}>
+        {[0, 1, 2].map((i) => (
+          <span key={i} className={i <= step ? "done" : ""} />
         ))}
       </div>
-      <h2 id="dialog-title">
-        {step === "Vaš prostor"
-          ? "Šta vam je važno?"
-          : step === "Vaši ciljevi"
-            ? "Vaš napredak počinje ovdje."
-            : step === "Pregled"
-              ? "Spremni za svoj prostor?"
-              : step}
+      <h2 id="dialog-title" tabIndex={-1} ref={title}>
+        {
+          ["Šta vas pokreće?", "Pronađimo vaš ritam.", "Neka bude baš vaše."][
+            step
+          ]
+        }
       </h2>
-      {step === "Vaš prostor" && (
-        <>
-          <p>
-            Odaberite šta vas zanima. Dostupne alate uključujemo odmah; interes
-            za module u pripremi čuvamo za kasnije. Izbor možete promijeniti.
-          </p>
-          <div className="onboard-modules">
-            {modules.map((m) => (
-              <label
-                key={m.id}
-                className={chosen.includes(m.id) ? "chosen" : ""}
+      <p className="onboarding-subtitle">
+        {
+          [
+            "Odaberite svoj glavni cilj. Sve možete prilagoditi kasnije.",
+            "Trening treba stati u vaš život. Počnimo od sedmice koja vam odgovara.",
+            "Uključite alate koje želite koristiti. Ostalo vas čeka u postavkama.",
+          ][step]
+        }
+      </p>
+      <fieldset disabled={busy || readOnly} className="onboarding-fields">
+        {step === 0 && (
+          <>
+            <div
+              className="onboarding-goals"
+              role="radiogroup"
+              aria-label="Glavni cilj"
+            >
+              {goals.map((g) => (
+                <label
+                  key={g.value}
+                  className={draft.goal === g.value ? "selected" : ""}
+                >
+                  <input
+                    type="radio"
+                    name="goal"
+                    value={g.value}
+                    checked={draft.goal === g.value}
+                    onChange={() => field("goal", g.value)}
+                  />
+                  <span>
+                    <strong>{g.title}</strong>
+                    <small>{g.note}</small>
+                  </span>
+                  <span className="onboarding-check">
+                    {draft.goal === g.value ? (
+                      <Check size={14} />
+                    ) : (
+                      <Target size={14} />
+                    )}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <label>
+              Iskustvo s treningom
+              <select
+                value={draft.experience}
+                onChange={(e) => field("experience", e.target.value)}
               >
-                <input
-                  type="checkbox"
-                  checked={chosen.includes(m.id)}
-                  onChange={() =>
-                    setChosen(
-                      chosen.includes(m.id)
-                        ? chosen.filter((id) => id !== m.id)
-                        : [...chosen, m.id],
-                    )
-                  }
-                />
-                <strong>{m.name}</strong>
-                <small>{m.description}</small>
-                {!m.available && <small>U pripremi · sačuvajte interes</small>}
-              </label>
-            ))}
-          </div>
-        </>
-      )}
-      {step === "Vaši ciljevi" && (
-        <>
-          <p>
-            Postavke služe kao početak razgovora s trenerom. Ne stvaraju
-            automatski program.
-          </p>
-          <label>
-            Glavni cilj
-            <select
-              value={draft.goal}
-              onChange={(e) => field("goal", e.target.value)}
-            >
-              {[
-                "Razviti snagu i kontinuitet",
-                "Poboljšati opću kondiciju",
-                "Izgraditi mišićnu masu",
-                "Upravljati tjelesnom masom",
-                "Unaprijediti svakodnevno zdravlje i dobrobit",
-              ].map((v) => (
-                <option key={v}>{v}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Iskustvo s treningom
-            <select
-              value={draft.experience}
-              onChange={(e) => field("experience", e.target.value)}
-            >
-              {[
-                "Početnik",
-                "Povremeno treniram",
-                "Redovno treniram",
-                "Napredni nivo",
-              ].map((v) => (
-                <option key={v}>{v}</option>
-              ))}
-            </select>
-          </label>
-        </>
-      )}
-      {step === "Trening" && (
-        <>
-          <p>Plan treba odgovarati vašoj sedmici, opremi i iskustvu.</p>
-          <div className="form-row">
-            <label>
-              Dana sedmično
-              <input
-                type="number"
-                required
-                min={1}
-                max={7}
-                value={draft.days}
-                onChange={(e) => field("days", Number(e.target.value))}
-              />
+                {[
+                  "Početnik",
+                  "Povremeno treniram",
+                  "Redovno treniram",
+                  "Napredni nivo",
+                ].map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
             </label>
+          </>
+        )}
+        {step === 1 && (
+          <>
+            <label className="onboarding-field-title">
+              Koliko dana sedmično?
+            </label>
+            <div
+              className="onboarding-days"
+              role="group"
+              aria-label="Dana treninga sedmično"
+            >
+              {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  aria-pressed={draft.days === d}
+                  onClick={() => field("days", d)}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+            <p className="onboarding-quiet">
+              {draft.days} {draft.days === 1 ? "dan" : "dana"} sedmično ·
+              prilagodite kad god želite
+            </p>
             <label>
-              Minuta po treningu
-              <input
-                type="number"
-                required
-                min={10}
-                max={180}
-                step={5}
+              Vrijeme za jedan trening
+              <select
                 value={draft.minutes}
                 onChange={(e) => field("minutes", Number(e.target.value))}
-              />
+              >
+                {[15, 20, 30, 45, 60, 75, 90].map((n) => (
+                  <option key={n} value={n}>
+                    {n} minuta
+                  </option>
+                ))}
+                {![15, 20, 30, 45, 60, 75, 90].includes(draft.minutes) && (
+                  <option value={draft.minutes}>{draft.minutes} minuta</option>
+                )}
+              </select>
             </label>
-          </div>
-          <label>
-            Mjesto treninga
-            <select
-              value={draft.setting}
-              onChange={(e) => field("setting", e.target.value)}
-            >
-              {["Teretana", "Kod kuće", "Na otvorenom", "Kombinovano"].map(
-                (v) => (
-                  <option key={v}>{v}</option>
-                ),
-              )}
-            </select>
-          </label>
-        </>
-      )}
-      {step === "Ishrana" && (
-        <>
-          <p>
-            Počinjemo s vašim prioritetom. Dnevnik obroka i hidratacije je
-            dostupan; stručni jelovnici i detaljno planiranje su u pripremi.
-          </p>
-          <label>
-            Prioritet u ishrani
-            <select
-              value={draft.nutrition}
-              onChange={(e) => field("nutrition", e.target.value)}
-            >
-              {[
-                "Izgraditi redovne navike",
-                "Pratiti obroke i hidrataciju",
-                "Podržati trening i oporavak",
-                "Razgovarati s nutricionistom kada usluga bude dostupna",
-              ].map((v) => (
-                <option key={v}>{v}</option>
+            <label>
+              Gdje najčešće trenirate?
+              <select
+                value={draft.setting}
+                onChange={(e) => field("setting", e.target.value)}
+              >
+                {["Teretana", "Kod kuće", "Na otvorenom", "Kombinovano"].map(
+                  (v) => (
+                    <option key={v}>{v}</option>
+                  ),
+                )}
+              </select>
+            </label>
+          </>
+        )}
+        {step === 2 && (
+          <>
+            <div className="onboarding-tools">
+              {tools.map(({ id, name, note, icon: Icon }) => (
+                <label
+                  className={chosen.includes(id) ? "selected" : ""}
+                  key={id}
+                >
+                  <span className="onboarding-tool-icon">
+                    <Icon size={21} />
+                  </span>
+                  <span>
+                    <strong>{name}</strong>
+                    <small>{note}</small>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={chosen.includes(id)}
+                    onChange={() =>
+                      setChosen((c) =>
+                        c.includes(id) ? c.filter((v) => v !== id) : [...c, id],
+                      )
+                    }
+                  />
+                </label>
               ))}
-            </select>
-          </label>
-        </>
-      )}
-      {step === "Oporavak" && (
-        <>
-          <p>
-            Zabilježite vlastiti cilj sna. Aplikacija ne postavlja dijagnozu
-            niti određuje medicinske potrebe.
-          </p>
-          <label>
-            Lični cilj sna · sati
-            <input
-              type="number"
-              min={4}
-              max={12}
-              step={0.5}
-              required
-              value={draft.sleepTarget}
-              onChange={(e) => field("sleepTarget", Number(e.target.value))}
-            />
-          </label>
-        </>
-      )}
-      {step === "Podrška" && (
-        <>
-          <p>
-            Možete koristiti vlastiti račun ili prihvatiti poziv trenera. Ovaj
-            izbor sam po sebi ne dodjeljuje stručnjaka.
-          </p>
-          <label>
-            Kako želite koristiti platformu?
-            <select
-              value={draft.support}
-              onChange={(e) => field("support", e.target.value)}
-            >
-              {[
-                "Samostalno, uz mogućnost poziva trenera",
-                "Imam trenera i prihvatit ću njegov poziv",
-                "Želim pronaći stručnu podršku kada bude dostupna",
-              ].map((v) => (
-                <option key={v}>{v}</option>
-              ))}
-            </select>
-          </label>
-          <p className="quiet-note">
-            Zdravstveni nalazi, menstrualni podaci i evidencija lijekova
-            prikupljat će se tek u odgovarajućim stručnim tokovima uz jasne
-            dozvole. Trenutno ih ne unosite ovdje.
-          </p>
-        </>
-      )}
-      {step === "Pregled" && (
-        <>
-          <div className="onboard-summary">
-            <p>
-              <strong>Cilj</strong>
-              {draft.goal}
-            </p>
-            <p>
-              <strong>Trening</strong>
-              {chosen.includes("training")
-                ? `${draft.days} dana · ${draft.minutes} min · ${draft.setting}`
-                : "Nije odabran"}
-            </p>
-            <p>
-              <strong>Dostupni alati</strong>
+            </div>
+            <details className="onboarding-options">
+              <summary>
+                Dodatne postavke <span>Opcionalno</span>
+              </summary>
+              <label>
+                Prioritet u ishrani
+                <select
+                  value={draft.nutrition}
+                  onChange={(e) => field("nutrition", e.target.value)}
+                >
+                  {[
+                    "Izgraditi redovne navike",
+                    "Pratiti obroke i hidrataciju",
+                    "Podržati trening i oporavak",
+                  ].map((v) => (
+                    <option key={v}>{v}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Lični cilj sna · sati
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={4}
+                  max={12}
+                  step={0.5}
+                  value={draft.sleepTarget}
+                  onChange={(e) => field("sleepTarget", Number(e.target.value))}
+                />
+              </label>
               {modules
-                .filter((m) => m.available && chosen.includes(m.id))
-                .map((m) => m.name)
-                .join(", ") || "Nijedan — izbor možete promijeniti kasnije"}
+                .filter(
+                  (m) =>
+                    !["training", "nutrition", "progress", "recovery"].includes(
+                      m.id,
+                    ) && m.available,
+                )
+                .map((m) => (
+                  <label className="onboarding-extra" key={m.id}>
+                    <input
+                      type="checkbox"
+                      checked={chosen.includes(m.id)}
+                      onChange={() =>
+                        setChosen((c) =>
+                          c.includes(m.id)
+                            ? c.filter((v) => v !== m.id)
+                            : [...c, m.id],
+                        )
+                      }
+                    />
+                    <span>
+                      {m.name}
+                      <small>{m.description}</small>
+                    </span>
+                  </label>
+                ))}
+            </details>
+            <div className="onboarding-recap">
+              <Check size={17} />
+              <span>
+                {draft.days} dana · {draft.minutes} min · {draft.setting}
+                <small>
+                  Vaš izbor je početak. Trener dodjeljuje program zasebno.
+                </small>
+              </span>
+            </div>
+            <p className="onboarding-quiet">
+              Poziv trenera možete prihvatiti nakon postavljanja računa. Vi
+              odlučujete kada se povezujete.
             </p>
-            <p>
-              <strong>Interes za kasnije</strong>
-              {modules
-                .filter((m) => !m.available && chosen.includes(m.id))
-                .map((m) => m.name)
-                .join(", ") || "Nema dodatnih modula"}
-            </p>
-          </div>
-          <p>
-            Sačuvat ćemo vaše postavke. Ovim ne nastaje pretplata niti trošak.
-            Stručni program se dodjeljuje zasebno.
-          </p>
-        </>
+          </>
+        )}
+      </fieldset>
+      {error && (
+        <p className="food-error" role="alert">
+          {error}
+        </p>
       )}
-      {error && <p role="alert">{error}</p>}
       <div className="onboard-actions">
-        {index > 0 && (
+        {step > 0 && (
           <button
             className="text-link"
             type="button"
             disabled={busy}
-            onClick={() => setIndex(index - 1)}
+            onClick={() => setStep((s) => s - 1)}
           >
             <ArrowLeft size={16} /> Nazad
           </button>
         )}
-        <button className="primary" disabled={busy || (last && readOnly)}>
-          {busy ? "Čuvamo…" : last ? "Kreirajte moj prostor" : "Nastavite"}
-          {last ? <Check size={16} /> : <ArrowRight size={16} />}
+        <button className="primary" disabled={busy || readOnly}>
+          {busy ? (
+            <LoaderCircle className="spinning" size={17} />
+          ) : step === 2 ? (
+            <Check size={17} />
+          ) : (
+            <ArrowRight size={17} />
+          )}{" "}
+          {busy ? "Čuvamo…" : step === 2 ? "Otvorite moj prostor" : "Nastavite"}
         </button>
       </div>
     </form>

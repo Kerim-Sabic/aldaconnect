@@ -25,7 +25,8 @@ import {
   portionCalories,
   type FoodProduct,
 } from "@/lib/barcode";
-import { savedFoods, saveFood } from "@/lib/saved-foods";
+import ProductEditor from "./product-editor";
+import { savedFoods } from "@/lib/saved-foods";
 const BarcodeCamera = dynamic(() => import("./barcode-camera"), { ssr: false });
 import { dayKey, nutritionTotals, type DiaryEntry } from "@/lib/nutrition";
 
@@ -255,9 +256,6 @@ export function MealComposer({
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<FoodProduct[]>([]);
   const [searched, setSearched] = useState(false);
-  const [customName, setCustomName] = useState("");
-  const [customCalories, setCustomCalories] = useState("");
-  const [customUnit, setCustomUnit] = useState<"g" | "ml">("g");
   const abortRef = useRef<AbortController | null>(null);
   useEffect(
     () => () => {
@@ -285,12 +283,6 @@ export function MealComposer({
           productCodeVariants(valid).includes(p.code) ||
           productCodeVariants(p.code).includes(valid),
       );
-      if (local) {
-        setProduct(local);
-        setAmount("100");
-        setLoading(false);
-        return;
-      }
       try {
         const res = await fetch(
           `/api/nutrition/product?code=${encodeURIComponent(valid)}`,
@@ -303,7 +295,10 @@ export function MealComposer({
           setAmount(String(result.serving ?? 100));
         }
       } catch (e) {
-        if (!abort.signal.aborted)
+        if (!abort.signal.aborted && local) {
+          setProduct(local);
+          setAmount("100");
+        } else if (!abort.signal.aborted)
           setError(
             e instanceof Error
               ? e.message
@@ -475,86 +470,17 @@ export function MealComposer({
           </p>
         </div>
       ) : mode === "custom" ? (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            try {
-              const valid = productCode(code);
-              if (!valid) throw Error("Unesite ispravan barkod.");
-              const p: FoodProduct = {
-                code: valid,
-                name: customName.trim(),
-                brand: "Vaša deklaracija",
-                caloriesPer100: Number(customCalories),
-                unit: customUnit,
-                serving: null,
-                source: "device",
-              };
-              saveFood(actorId, p);
-              setProduct(p);
-              setAmount("100");
-              changeMode("barcode");
-            } catch (e) {
-              setError(
-                e instanceof Error ? e.message : "Proizvod nije sačuvan.",
-              );
-            }
+        <ProductEditor
+          code={code}
+          initial={product?.canEdit ? product : undefined}
+          onCancel={() => changeMode("barcode")}
+          onSaved={(p) => {
+            setProduct(p);
+            setCode(p.code);
+            setAmount(String(p.serving ?? 100));
+            changeMode("barcode");
           }}
-        >
-          <h3>Sačuvajte deklaraciju</h3>
-          <p className="food-footnote">
-            Proizvod se čuva samo na ovom uređaju, za vaš račun. Sljedeće
-            skeniranje ovog barkoda prepoznat će vaše podatke.
-          </p>
-          <label>
-            Barkod
-            <input
-              required
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              inputMode="numeric"
-              maxLength={24}
-            />
-          </label>
-          <label>
-            Naziv proizvoda
-            <input
-              required
-              minLength={2}
-              maxLength={160}
-              value={customName}
-              onChange={(e) => setCustomName(e.target.value)}
-            />
-          </label>
-          <div className="meal-fields">
-            <label>
-              Kalorije na 100 {customUnit}
-              <input
-                required
-                type="number"
-                min={0}
-                max={1000}
-                step="0.1"
-                value={customCalories}
-                onChange={(e) => setCustomCalories(e.target.value)}
-                inputMode="decimal"
-              />
-            </label>
-            <label>
-              Jedinica
-              <select
-                value={customUnit}
-                onChange={(e) => setCustomUnit(e.target.value as "g" | "ml")}
-              >
-                <option value="g">Grami · g</option>
-                <option value="ml">Mililitri · ml</option>
-              </select>
-            </label>
-          </div>
-          <button className="primary full">
-            Sačuvajte proizvod i odaberite porciju <ArrowRight size={16} />
-          </button>
-        </form>
+        />
       ) : mode === "barcode" ? (
         <div className="barcode-flow">
           {product ? (
@@ -600,21 +526,21 @@ export function MealComposer({
                   <small> kcal</small>
                 </strong>
               </div>
-              {product.source === "device" ? (
+              {product.source === "community" || product.source === "device" ? (
                 <p className="food-footnote">
-                  Podaci s vaše deklaracije · sačuvani na ovom uređaju.{" "}
-                  <button
-                    type="button"
-                    className="text-link"
-                    onClick={() => {
-                      setCustomName(product.name);
-                      setCustomCalories(String(product.caloriesPer100));
-                      setCustomUnit(product.unit);
-                      changeMode("custom");
-                    }}
-                  >
-                    Uredite deklaraciju
-                  </button>
+                  {product.source === "community"
+                    ? "Zajednički Alda katalog · podaci s deklaracije."
+                    : "Sačuvano ranije na ovom uređaju."}{" "}
+                  Provjerite pakovanje.{" "}
+                  {product.canEdit && (
+                    <button
+                      type="button"
+                      className="text-link"
+                      onClick={() => changeMode("custom")}
+                    >
+                      Uredite deklaraciju
+                    </button>
+                  )}
                 </p>
               ) : (
                 <p className="food-footnote">
@@ -727,14 +653,12 @@ export function MealComposer({
                 </button>
               </form>
               <p className="food-footnote">
-                Kamera čita kod na vašem uređaju. Šaljemo samo broj proizvoda u
-                bazu Open Food Facts. Za hranu bez barkoda koristite ručni unos.
+                Kamera čita kod na vašem uređaju. Provjeravamo Alda katalog i
+                Open Food Facts. Fotografije ostaju na vašem uređaju.
               </p>
               <button
                 className="text-link"
                 onClick={() => {
-                  setCustomName("");
-                  setCustomCalories("");
                   changeMode("custom");
                 }}
               >

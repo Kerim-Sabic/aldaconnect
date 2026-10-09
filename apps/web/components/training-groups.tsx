@@ -8,6 +8,9 @@ import {
   Check,
   LoaderCircle,
   ArrowLeft,
+  Search,
+  X,
+  UserPlus,
 } from "lucide-react";
 import { portalAction, useLiveUpdates } from "@/lib/live-updates";
 export type ChatMessage = {
@@ -157,7 +160,14 @@ export default function TrainingGroups({
   const [invite, setInvite] = useState(false);
   const [all, setAll] = useState(false);
   const [userId, setUserId] = useState("");
+  const [memberQuery, setMemberQuery] = useState("");
   const group = data?.groups.find((g) => g.id === selected);
+  const eligible = clients.filter(
+    (c) =>
+      !group?.members.some(
+        (m) => m.id === c.id && ["active", "invited"].includes(m.status),
+      ),
+  );
   const action = async (
     name: string,
     payload: Record<string, unknown>,
@@ -168,7 +178,13 @@ export default function TrainingGroups({
     try {
       const result = await portalAction(name, payload);
       await refresh();
-      setNotice(success);
+      setNotice(
+        name === "inviteGroup"
+          ? result.invited
+            ? `${result.invited} ${result.invited === 1 ? "poziv je poslan" : "poziva je poslano"}. Klijenti mogu prihvatiti poziv u svom prostoru.`
+            : "Svi odabrani klijenti su već članovi ili imaju otvoren poziv."
+          : success,
+      );
       return result;
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "Pokušajte ponovo.");
@@ -177,11 +193,17 @@ export default function TrainingGroups({
     }
   };
   return (
-    <div className="groups-workspace">
+    <div className="groups-workspace clean-groups">
       <div className="section-heading">
         <div>
           <span className="sheet-kicker">ZAJEDNO JE LAKŠE</span>
-          <h2>Trening grupe</h2>
+          {owner ? (
+            <h2>Trening grupe</h2>
+          ) : (
+            <p className="group-intro">
+              Pridružite se grupi i ostanite u toku sa svojim timom.
+            </p>
+          )}
         </div>
         {owner && (
           <button className="primary" onClick={() => setCreate(!create)}>
@@ -216,6 +238,11 @@ export default function TrainingGroups({
             }
           }}
         >
+          <div>
+            <span className="sheet-kicker">VAŠ TIM</span>
+            <h3>Nova trening grupa</h3>
+            <p>Izaberite naziv. Klijente ćete pozvati u sljedećem koraku.</p>
+          </div>
           <label>
             Naziv grupe
             <input
@@ -245,7 +272,16 @@ export default function TrainingGroups({
       {!selected && (
         <div className="group-grid">
           {data?.groups.map((g) => (
-            <article className="crm-panel group-card" key={g.id}>
+            <article
+              className={
+                "crm-panel group-card " +
+                (g.status === "invited" ? "group-card-invited" : "")
+              }
+              key={g.id}
+            >
+              {g.status === "invited" && (
+                <span className="group-invited-label">POZVANI STE</span>
+              )}
               <span className="group-emblem">
                 <Users size={24} />
               </span>
@@ -314,6 +350,157 @@ export default function TrainingGroups({
       )}
       {group && (
         <>
+          {invite && owner && (
+            <form
+              className="group-invitation-panel"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!all && !userId) return;
+                const result = await action(
+                  "inviteGroup",
+                  { groupId: group.id, scope: all ? "all" : "single", userId },
+                  "Poziv je poslan.",
+                );
+                if (result) {
+                  setInvite(false);
+                  setUserId("");
+                }
+              }}
+            >
+              <header>
+                <span className="group-invitation-icon">
+                  <UserPlus size={22} />
+                </span>
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label="Zatvorite poziv"
+                  disabled={busy}
+                  onClick={() => setInvite(false)}
+                >
+                  <X size={20} />
+                </button>
+              </header>
+              <span className="sheet-kicker">RASTIMO ZAJEDNO</span>
+              <h3>Pozovite svoj tim.</h3>
+              <p>
+                Poziv u grupu <strong>{group.name}</strong> stiže direktno u
+                Alda aplikaciju.
+              </p>
+              <div
+                className="catalog-tabs"
+                role="group"
+                aria-label="Koga pozivate"
+              >
+                <button
+                  type="button"
+                  aria-pressed={!all}
+                  onClick={() => setAll(false)}
+                >
+                  Jedan klijent
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={all}
+                  onClick={() => setAll(true)}
+                >
+                  Svi klijenti <span>{eligible.length}</span>
+                </button>
+              </div>
+              {all ? (
+                <div className="group-invite-all">
+                  <Users size={25} />
+                  <strong>{eligible.length} novih poziva</strong>
+                  <p>
+                    Članovi i klijenti s otvorenim pozivom neće dobiti dupli
+                    poziv.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <label className="catalog-search">
+                    <Search size={17} />
+                    <input
+                      placeholder="Pronađite klijenta"
+                      aria-label="Pronađite klijenta za poziv"
+                      maxLength={80}
+                      value={memberQuery}
+                      onChange={(e) => setMemberQuery(e.target.value)}
+                    />
+                  </label>
+                  <div
+                    className="invite-client-list"
+                    role="radiogroup"
+                    aria-label="Odaberite klijenta"
+                  >
+                    {eligible
+                      .filter((c) =>
+                        c.name
+                          .toLocaleLowerCase()
+                          .includes(memberQuery.toLocaleLowerCase()),
+                      )
+                      .map((c) => (
+                        <label
+                          key={c.id}
+                          className={userId === c.id ? "selected" : ""}
+                        >
+                          <span className="avatar sage">
+                            {c.name.slice(0, 1).toUpperCase()}
+                          </span>
+                          <span>{c.name}</span>
+                          <input
+                            type="radio"
+                            name="inviteClient"
+                            value={c.id}
+                            checked={userId === c.id}
+                            onChange={() => setUserId(c.id)}
+                            required={!all}
+                          />
+                        </label>
+                      ))}
+                    {!eligible.length ? (
+                      <p>
+                        Svi klijenti su već u grupi ili imaju otvoren poziv.
+                      </p>
+                    ) : (
+                      !eligible.some((c) =>
+                        c.name
+                          .toLocaleLowerCase()
+                          .includes(memberQuery.toLocaleLowerCase()),
+                      ) && <p>Nema klijenata za ovu pretragu.</p>
+                    )}
+                  </div>
+                </>
+              )}
+              <p className="group-invite-consent">
+                <Check size={15} /> Klijent bira hoće li prihvatiti poziv.
+                Povezivanje s trenerom počinje nakon prihvatanja.
+              </p>
+              <div className="product-editor-actions">
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => setInvite(false)}
+                  disabled={busy}
+                >
+                  Odustanite
+                </button>
+                <button
+                  className="primary"
+                  disabled={busy || !eligible.length || (!all && !userId)}
+                >
+                  {busy ? (
+                    <LoaderCircle className="spinning" size={16} />
+                  ) : (
+                    <ArrowUpRight size={16} />
+                  )}{" "}
+                  {all
+                    ? `Pošaljite pozive (${eligible.length})`
+                    : "Pošaljite poziv"}
+                </button>
+              </div>
+            </form>
+          )}
           <section className="conversation group-conversation">
             <header>
               <span className="avatar sage">
@@ -331,7 +518,12 @@ export default function TrainingGroups({
               {owner && (
                 <button
                   className="secondary"
-                  onClick={() => setInvite(!invite)}
+                  onClick={() => {
+                    setInvite(!invite);
+                    setMemberQuery("");
+                    setUserId("");
+                  }}
+                  aria-expanded={invite}
                 >
                   <Plus size={15} /> Pozovite
                 </button>
@@ -345,63 +537,6 @@ export default function TrainingGroups({
               }}
             />
           </section>
-          {invite && owner && (
-            <form
-              className="crm-panel invite-group-form"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const r = await action(
-                  "inviteGroup",
-                  { groupId: group.id, scope: all ? "all" : "single", userId },
-                  "Pozivi su poslani unutar aplikacije.",
-                );
-                if (r) setInvite(false);
-              }}
-            >
-              <h3>Pozovite u {group.name}</h3>
-              <div className="collection-tabs">
-                <button
-                  type="button"
-                  aria-pressed={!all}
-                  onClick={() => setAll(false)}
-                >
-                  Jedan klijent
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={all}
-                  onClick={() => setAll(true)}
-                >
-                  Svi klijenti
-                </button>
-              </div>
-              {all ? (
-                <p>
-                  Poziv će dobiti svih {clients.length} klijenata. Postojeći
-                  članovi ostaju u grupi.
-                </p>
-              ) : (
-                <label>
-                  Klijent
-                  <select
-                    required
-                    value={userId}
-                    onChange={(e) => setUserId(e.target.value)}
-                  >
-                    <option value="">Odaberite klijenta</option>
-                    {clients.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-              <button className="primary" disabled={busy || !clients.length}>
-                Pošaljite {all ? "pozive" : "poziv"} <ArrowUpRight size={16} />
-              </button>
-            </form>
-          )}
           <details className="crm-panel group-members">
             <summary>
               Članovi ·{" "}

@@ -33,7 +33,10 @@ export async function POST(req: NextRequest) {
         400,
       );
     (await cookies()).delete(usernameCookie);
-    return reply({ ok: true, next: type === "recovery" || type === "invite" ? "/auth/reset" : "/" });
+    return reply({
+      ok: true,
+      next: type === "recovery" || type === "invite" ? "/auth/reset" : "/app",
+    });
   } catch {
     return reply({ error: "Link nije ispravan. Zatražite novu poruku." }, 400);
   }

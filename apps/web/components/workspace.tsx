@@ -30,6 +30,7 @@ const ProgramLibrary = dynamic(() => import("./program-library"), {
 const AdminWorkspace = dynamic(() => import("./admin-workspace"), {
   loading: moduleLoading,
 });
+const ProductLibrary = dynamic(() => import("./product-library"));
 const Onboarding = dynamic(() => import("./onboarding"), {
   loading: moduleLoading,
 });
@@ -79,6 +80,7 @@ import {
   Menu,
   MessageCircle,
   Plus,
+  Package,
   Search,
   Settings2,
   ShieldCheck,
@@ -310,9 +312,24 @@ function WorkspaceView({
     };
   }, [busy, queue.length, view, modal]);
   useEffect(() => {
-    setInviteToken(
-      new URLSearchParams(window.location.search).get("invite") ?? "",
-    );
+    const params = new URLSearchParams(window.location.search);
+    setInviteToken(params.get("invite") ?? "");
+    const requested = params.get("view");
+    if (
+      requested &&
+      [
+        "today",
+        "plan",
+        "nutrition",
+        "library",
+        "groups",
+        "products",
+        "messages",
+        "progress",
+        "team",
+      ].includes(requested)
+    )
+      setView(requested);
   }, []);
   useEffect(() => {
     if (inviteToken && data?.actor.role === "client" && data.actor.onboarded)
@@ -323,7 +340,13 @@ function WorkspaceView({
       .then((r) => r.json())
       .then((c) => {
         setCloud(c.cloud);
-        if (c.cloud) setAuth("login");
+        if (c.cloud)
+          setAuth(
+            new URLSearchParams(window.location.search).get("auth") ===
+              "register"
+              ? "register"
+              : "login",
+          );
       })
       .catch(() => {});
   }, []);
@@ -437,6 +460,10 @@ function WorkspaceView({
     setView(next);
     setMobile(false);
     setQuery("");
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", next);
+    url.searchParams.delete("auth");
+    window.history.replaceState(null, "", url);
   };
   const persistQueue = (next: Queued[]) => {
     if (!data) return;
@@ -638,9 +665,9 @@ function WorkspaceView({
         <div className="entry-theme">
           <ThemeControl />
         </div>
-        <div className="entry-brand">
+        <a className="entry-brand" href="/" aria-label="Alda Connect početna">
           <Brand />
-        </div>
+        </a>
         <main className="entry-grid">
           <section className="entry-intro">
             <span className="entry-kicker">
@@ -756,7 +783,25 @@ function WorkspaceView({
                         setView(
                           signedIn?.actor.role === "trainer"
                             ? "queue"
-                            : "today",
+                            : [
+                                  "today",
+                                  "plan",
+                                  "nutrition",
+                                  "library",
+                                  "groups",
+                                  "products",
+                                  "messages",
+                                  "progress",
+                                  "team",
+                                ].includes(
+                                  new URLSearchParams(
+                                    window.location.search,
+                                  ).get("view") ?? "",
+                                )
+                              ? new URLSearchParams(window.location.search).get(
+                                  "view",
+                                )!
+                              : "today",
                         );
                       }
                     } catch (err) {
@@ -1016,6 +1061,7 @@ function WorkspaceView({
           icon: CalendarDays,
         },
         { id: "nutrition", label: "Ishrana", icon: Flame },
+        { id: "products", label: "Proizvodi", icon: Package },
         { id: "library", label: "Programi", icon: BookOpen },
         { id: "groups", label: "Trening grupe", icon: Users },
         {
@@ -1068,6 +1114,7 @@ function WorkspaceView({
       ? "Razgovori s vašim klijentima."
       : "Razgovori s vašim timom.",
     nutrition: "Jednostavan pregled vaših obroka i kalorija.",
+    products: "Vaše deklaracije, dostupne cijeloj zajednici.",
     cycle: "Vaše bilješke, dostupne samo vama.",
     medications: "Evidencija s autorima i historijom izmjena.",
     labs: "Testni nalazi i pregled uz vašu dozvolu.",
@@ -1215,8 +1262,8 @@ function WorkspaceView({
       >
         <a
           className="brand"
-          href="/"
-          aria-label="Alda Connect · Početna stranica"
+          href="/app"
+          aria-label="Alda Connect · Vaš prostor"
         >
           <Brand />
         </a>
@@ -1231,28 +1278,64 @@ function WorkspaceView({
           {expert ? "STRUČNI PROSTOR" : "VAŠ PROSTOR"}
         </div>
         <nav aria-label="Glavna navigacija">
-          {nav.map((n) => (
-            <button
-              key={n.id}
-              className={
-                view === n.id || (view === "workout" && n.id === "plan")
-                  ? "nav-item active"
-                  : "nav-item"
-              }
-              aria-current={
-                view === n.id || (view === "workout" && n.id === "plan")
-                  ? "page"
-                  : undefined
-              }
-              onClick={() => changeView(n.id)}
-            >
-              <n.icon size={19} />
-              <span>{n.label}</span>
-              {n.id === "queue" &&
-                data.tasks.filter((t) => t.status === "open").length > 0 && (
-                  <b>{data.tasks.filter((t) => t.status === "open").length}</b>
-                )}
-            </button>
+          {(expert
+            ? [{ label: "Radni prostor", items: nav }]
+            : [
+                {
+                  label: "SVAKI DAN",
+                  items: nav.filter((n) =>
+                    ["today", "plan", "nutrition", "messages"].includes(n.id),
+                  ),
+                },
+                {
+                  label: "ISTRAŽITE",
+                  items: nav.filter((n) =>
+                    ["library", "groups", "products"].includes(n.id),
+                  ),
+                },
+                {
+                  label: "VAŠ PROSTOR",
+                  items: nav.filter((n) =>
+                    [
+                      "progress",
+                      "team",
+                      "cycle",
+                      "medications",
+                      "labs",
+                    ].includes(n.id),
+                  ),
+                },
+              ]
+          ).map((section) => (
+            <div className="nav-section" key={section.label}>
+              <span className="nav-section-label">{section.label}</span>
+              {section.items.map((n) => (
+                <button
+                  key={n.id}
+                  className={
+                    view === n.id || (view === "workout" && n.id === "plan")
+                      ? "nav-item active"
+                      : "nav-item"
+                  }
+                  aria-current={
+                    view === n.id || (view === "workout" && n.id === "plan")
+                      ? "page"
+                      : undefined
+                  }
+                  onClick={() => changeView(n.id)}
+                >
+                  <n.icon size={19} />
+                  <span>{n.label}</span>
+                  {n.id === "queue" &&
+                    data.tasks.filter((t) => t.status === "open").length >
+                      0 && (
+                      <b>
+                        {data.tasks.filter((t) => t.status === "open").length}
+                      </b>
+                    )}
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="sidebar-bottom">
@@ -1809,6 +1892,9 @@ function WorkspaceView({
             </>
           )}
 
+          {view === "products" && (
+            <ProductLibrary readOnly={Boolean(previewId)} />
+          )}
           {view === "nutrition" && (
             <Nutrition
               entries={data.diary}
@@ -2847,7 +2933,7 @@ function WorkspaceView({
                     );
                     setInviteLink(
                       new URL(
-                        "/?invite=" + encodeURIComponent(value.inviteToken),
+                        "/app?invite=" + encodeURIComponent(value.inviteToken),
                         window.location.origin,
                       ).href,
                     );

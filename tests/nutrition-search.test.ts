@@ -2,6 +2,9 @@ import { beforeEach, afterEach, it, expect, vi } from "vitest";
 import { NextRequest } from "../apps/web/node_modules/next/server";
 const { snapshot } = vi.hoisted(() => ({ snapshot: vi.fn() }));
 vi.mock("../apps/web/app/api/workspace/route", () => ({ GET: snapshot }));
+vi.mock("../apps/web/lib/supabase/food-catalog", () => ({
+  foodCatalog: vi.fn(async () => ({ data: { products: [] }, error: null })),
+}));
 let GET: typeof import("../apps/web/app/api/nutrition/search/route").GET;
 const request = (q = "jogurt") =>
   new NextRequest(

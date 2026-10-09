@@ -56,6 +56,21 @@ export type FoodProduct = {
   unit: "g" | "ml";
   serving: number | null;
   source: string;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  sugars?: number | null;
+  fiber?: number | null;
+  saturated?: number | null;
+  salt?: number | null;
+  packageQuantity?: number | null;
+  ingredients?: string;
+  allergens?: string;
+  description?: string;
+  version?: number;
+  canEdit?: boolean;
+  hidden?: boolean;
+  reports?: { reason: string; createdAt: string }[];
 };
 export function portionCalories(per100: number, amount: number) {
   return Math.round((per100 * amount) / 100);
@@ -126,7 +141,37 @@ export function readFoodProduct(
     (!Number.isFinite(serving) || serving <= 0 || serving > 5000)
   )
     serving = null;
+  const labelNutrients: Record<string, number> = {};
+  for (const [key, providerKey] of Object.entries({
+    protein: "proteins",
+    carbs: "carbohydrates",
+    fat: "fat",
+    sugars: "sugars",
+    fiber: "fiber",
+    saturated: "saturated-fat",
+    salt: "salt",
+  })) {
+    const declared = aggregate?.nutrients?.[providerKey];
+    const legacy = (p.nutriments as Record<string, unknown> | undefined)?.[
+      providerKey + "_100g"
+    ];
+    const value = aggregate
+      ? declared?.source !== "estimate" && declared?.unit === "g"
+        ? declared.value
+        : undefined
+      : legacy;
+    if (
+      typeof value === "number" &&
+      Number.isFinite(value) &&
+      value >= 0 &&
+      value <= 100
+    )
+      labelNutrients[key] = value;
+  }
   return {
+    ...labelNutrients,
+    ingredients: String(p.ingredients_text || "").slice(0, 1000),
+    allergens: String(p.allergens || "").slice(0, 300),
     code,
     name: String(
       p.product_name_bs ||

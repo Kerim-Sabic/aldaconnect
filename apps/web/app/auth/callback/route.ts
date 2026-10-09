@@ -10,10 +10,10 @@ export async function GET(req: NextRequest) {
         new URL(
           req.nextUrl.searchParams.get("next") === "/auth/reset"
             ? "/auth/reset"
-            : "/",
+            : "/app",
           req.url,
         ),
       );
   }
-  return NextResponse.redirect(new URL("/?auth=confirmation-failed", req.url));
+  return NextResponse.redirect(new URL("/app?auth=confirmation-failed", req.url));
 }

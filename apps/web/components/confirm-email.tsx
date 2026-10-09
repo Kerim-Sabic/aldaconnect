@@ -55,7 +55,7 @@ export default function ConfirmEmail({
         </p>
       )}
       <p>
-        <a href="/">Povratak na prijavu</a>
+        <a href="/app">Povratak na prijavu</a>
       </p>
     </main>
   );

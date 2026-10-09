@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { NextRequest } from "../apps/web/node_modules/next/server";
-const { snapshot } = vi.hoisted(() => ({ snapshot: vi.fn() }));
-vi.mock("../apps/web/app/api/workspace/route", () => ({ GET: snapshot }));
+const { catalog } = vi.hoisted(() => ({ catalog: vi.fn() }));
+vi.mock("../apps/web/lib/supabase/food-catalog", () => ({
+  foodCatalog: catalog,
+  catalogMessage: (s: string) => s,
+  catalogStatus: (s: string) => (s === "28000" ? 401 : 403),
+}));
 let GET: typeof import("../apps/web/app/api/nutrition/product/route").GET;
 const request = (code = "3017620422003") =>
   new NextRequest(
@@ -26,12 +30,10 @@ const providerProduct = {
 beforeEach(async () => {
   vi.resetModules();
   ({ GET } = await import("../apps/web/app/api/nutrition/product/route"));
-  snapshot.mockImplementation(async () =>
-    Response.json({
-      actor: { id: "member", role: "client" },
-      clientId: "member",
-    }),
-  );
+  catalog.mockResolvedValue({
+    data: { actorId: "member", product: null },
+    error: null,
+  });
   vi.stubGlobal("fetch", vi.fn());
 });
 afterEach(() => {
@@ -44,24 +46,45 @@ it("rejects invalid codes without querying the provider", async () => {
   expect(fetch).not.toHaveBeenCalled();
 });
 it("requires an authenticated member", async () => {
-  snapshot.mockResolvedValue(Response.json({}, { status: 401 }));
+  catalog.mockResolvedValue({
+    data: null,
+    error: { message: "Sign in", code: "28000" },
+  });
   expect((await GET(request())).status).toBe(401);
   expect(fetch).not.toHaveBeenCalled();
 });
-it("rejects experts, previews and other member contexts", async () => {
-  for (const data of [
-    { actor: { id: "coach", role: "trainer" }, clientId: "member" },
-    {
-      actor: { id: "member", role: "client" },
-      clientId: "member",
-      readOnly: true,
-    },
-    { actor: { id: "member", role: "client" }, clientId: "other" },
-  ]) {
-    snapshot.mockResolvedValue(Response.json(data));
-    expect((await GET(request())).status).toBe(403);
+it("rejects preview and delegated context parameters", async () => {
+  for (const param of ["preview=member", "client=other"]) {
+    expect(
+      (
+        await GET(
+          new NextRequest(
+            "http://localhost/api/nutrition/product?code=3017620422003&" +
+              param,
+          ),
+        )
+      ).status,
+    ).toBe(403);
   }
   expect(fetch).not.toHaveBeenCalled();
+});
+it("returns newly shared declarations ahead of any external cached result", async () => {
+  vi.mocked(fetch).mockResolvedValue(Response.json(providerProduct));
+  await GET(request());
+  catalog.mockResolvedValue({
+    data: {
+      actorId: "member",
+      product: {
+        code: "03017620422003",
+        name: "Shared label",
+        caloriesPer100: 530,
+        source: "community",
+      },
+    },
+    error: null,
+  });
+  expect((await (await GET(request())).json()).name).toBe("Shared label");
+  expect(fetch).toHaveBeenCalledTimes(1);
 });
 it("returns nutrition and caches public products only", async () => {
   vi.mocked(fetch).mockResolvedValue(Response.json(providerProduct));

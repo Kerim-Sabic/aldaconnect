@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GET as workspaceSnapshot } from "../../workspace/route";
+import {
+  foodCatalog,
+  catalogMessage,
+  catalogStatus,
+} from "@/lib/supabase/food-catalog";
 import {
   productCode,
   productCodeVariants,
@@ -25,27 +29,30 @@ export async function GET(req: NextRequest) {
         },
         400,
       );
-    const snapshot = await workspaceSnapshot(req);
-    if (!snapshot.ok)
-      return reply({ error: "Prijavite se da pronađete proizvod." }, 401);
-    const data = await snapshot.json();
     if (
-      data.readOnly ||
-      data.actor?.role !== "client" ||
-      data.actor.id !== data.clientId
+      req.nextUrl.searchParams.has("preview") ||
+      req.nextUrl.searchParams.has("client")
     )
       return reply({ error: "Otvorite svoj korisnički prostor." }, 403);
+    const shared = await foodCatalog("lookup", { code });
+    if (shared.error)
+      return reply(
+        { error: catalogMessage(shared.error.message) },
+        catalogStatus(shared.error.code),
+      );
+    if (shared.data?.product) return reply(shared.data.product);
+    const actorId = shared.data!.actorId!;
     const now = Date.now();
     for (const [id, limit] of usage) if (limit.reset < now) usage.delete(id);
-    const limit = usage.get(data.actor.id) ?? { count: 0, reset: now + 60000 };
+    const limit = usage.get(actorId) ?? { count: 0, reset: now + 60000 };
     if (limit.count >= 10)
       return reply(
         { error: "Sačekajte minutu prije novog pretraživanja." },
         429,
       );
     limit.count++;
-    usage.set(data.actor.id, limit);
-    const cached = cache.get(code);
+    usage.set(actorId, limit);
+    const cached = cache.get(code.padStart(14, "0"));
     if (cached && cached.expires > now) return reply(cached.product);
     const staging = process.env.LOCAL_SYNTHETIC_TESTS === "true";
     const host = staging
@@ -59,7 +66,10 @@ export async function GET(req: NextRequest) {
       headers.Authorization =
         "Basic " + Buffer.from("off:off").toString("base64");
     let product: FoodProduct | null = null;
-    for (const variant of productCodeVariants(code)) {
+    const deadline = AbortSignal.timeout(8000);
+    for (const variant of productCodeVariants(code).sort(
+      (a, b) => a.length - b.length,
+    )) {
       const providerLimit = usage.get("provider") ?? {
         count: 0,
         reset: now + 60000,
@@ -75,8 +85,8 @@ export async function GET(req: NextRequest) {
       providerLimit.count++;
       usage.set("provider", providerLimit);
       const result = await fetch(
-        `https://${host}/api/v3.6/product/${variant}.json?fields=product_name,product_name_bs,generic_name,brands,nutrition,nutriments,serving_quantity,serving_quantity_unit,serving_size,quantity`,
-        { headers, signal: AbortSignal.timeout(12000), cache: "no-store" },
+        `https://${host}/api/v3.6/product/${variant}.json?fields=product_name,product_name_bs,generic_name,brands,nutrition,nutriments,serving_quantity,serving_quantity_unit,serving_size,quantity,ingredients_text,allergens`,
+        { headers, signal: deadline, cache: "no-store" },
       );
       if (result.status === 404) continue;
       if (!result.ok)
@@ -99,7 +109,7 @@ export async function GET(req: NextRequest) {
         404,
       );
     if (cache.size >= 500) cache.delete(cache.keys().next().value!);
-    cache.set(code, { product, expires: now + 3600000 });
+    cache.set(code.padStart(14, "0"), { product, expires: now + 3600000 });
     return reply(product);
   } catch {
     return reply(

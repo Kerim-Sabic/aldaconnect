@@ -11,7 +11,7 @@ export default function ResetPassword() {
       {done ? (
         <>
           <p role="status">Lozinka je promijenjena.</p>
-          <a className="primary" href="/">
+          <a className="primary" href="/app">
             Otvorite svoj prostor
           </a>
         </>

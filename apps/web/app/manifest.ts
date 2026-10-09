@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Alda Connect",
     lang: "bs",
     description: "Vaš trening, ishrana i stručna podrška.",
-    start_url: "/",
+    start_url: "/app",
     scope: "/",
     display: "standalone",
     background_color: "#f5f5f5",

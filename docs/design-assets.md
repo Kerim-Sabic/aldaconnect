@@ -127,3 +127,9 @@ Prompt subject: A dark sage resistance band loop and a small ivory exercise ball
 Asset: `apps/web/public/programs/program-18.webp`
 
 Prompt subject: Three minimal unbranded supplement containers in ivory and deep forest green, a clear water glass and one closed natural wood lid, balanced still-life composition. Program: basic supplement reference.
+
+## Public landing studio
+
+Asset: `apps/web/public/landing/studio.webp`. Generated with the built-in ImageGen on 9 October 2026, then resized to 1120 pixels and encoded as WebP. Original source is preserved in the local generated-images folder.
+
+Prompt direction: a quiet contemporary fitness studio, portrait 4:5 composition, warm limestone walls, natural morning window light, matte graphite kettlebell, folded sage mat and oak bench. Restrained ivory, forest/sage and graphite palette matching the approved Alda identity. Architectural depth and tactile materials; no people, text, logos, UI or watermark. Used only as editorial artwork; it does not represent an actual Alda-owned venue.
