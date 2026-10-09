@@ -1,6 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Download, WifiOff, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Download, Share, Smartphone, WifiOff, X } from "lucide-react";
+import { focusScope } from "./focus-scope";
+import Brand from "./brand";
 type InstallEvent = Event & {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: string }>;
@@ -9,11 +11,26 @@ export default function InstallApp() {
   const [prompt, setPrompt] = useState<InstallEvent | null>(null);
   const [installed, setInstalled] = useState(true);
   const [help, setHelp] = useState(false);
+  const helpRef = useRef<HTMLDivElement>(null);
+  const [apple, setApple] = useState(false);
   const [offline, setOffline] = useState(false);
   const [failure, setFailure] = useState(false);
   const [newRelease, setNewRelease] = useState("");
   const [dismissed, setDismissed] = useState("");
   const [updateMessage, setUpdateMessage] = useState("");
+  useEffect(() => {
+    setApple(
+      /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
+    );
+    const open = () => setHelp(true);
+    window.addEventListener("alda-install", open);
+    return () => window.removeEventListener("alda-install", open);
+  }, []);
+  useEffect(() => {
+    if (help && helpRef.current)
+      return focusScope(helpRef.current, () => setHelp(false));
+  }, [help]);
   useEffect(() => {
     let stopped = false;
     let checking = false;
@@ -161,11 +178,17 @@ export default function InstallApp() {
             <Download size={16} /> Dodajte na početni ekran
           </button>
         )}
-        {help && (
+      </div>
+      {help && (
+        <div className="install-backdrop" onClick={() => setHelp(false)}>
           <div
+            ref={helpRef}
+            tabIndex={-1}
+            onClick={(event) => event.stopPropagation()}
             className="install-help"
             role="dialog"
-            aria-label="Instalacija aplikacije"
+            aria-modal="true"
+            aria-labelledby="install-title"
           >
             <button
               className="icon-btn"
@@ -174,20 +197,84 @@ export default function InstallApp() {
             >
               <X size={18} />
             </button>
-            <h3>Vaš prostor, na jedan dodir.</h3>
-            <p>
-              iPhone / iPad: otvorite stranicu u Safariju, odaberite{" "}
-              <strong>Podijeli → Dodaj na početni ekran</strong>.
-            </p>
-            <p>
-              Android / računar: u meniju preglednika odaberite{" "}
-              <strong>Instaliraj aplikaciju</strong> ili{" "}
-              <strong>Dodaj na početni ekran</strong>.
-            </p>
-            <p>
-              Prijavite se istim računom. Instalirana aplikacija koristi istu
-              bazu i sinhronizuje podatke dok ste povezani.
-            </p>
+            <Brand />
+            <h3 id="install-title">
+              Vaš prostor.
+              <br />
+              Na jedan dodir.
+            </h3>
+            {installed ? (
+              <p>Aplikacija je već otvorena kao samostalna aplikacija.</p>
+            ) : (
+              <>
+                <p>
+                  Dodajte Alda Connect na početni ekran i otvorite ga kao
+                  aplikaciju, bez trake preglednika.
+                </p>
+                {apple ? (
+                  <ol className="install-steps">
+                    <li>
+                      <Share size={18} />
+                      <span>
+                        Otvorite ovu stranicu u <strong>Safariju</strong> i
+                        dodirnite <strong>Podijeli</strong>.
+                      </span>
+                    </li>
+                    <li>
+                      <PlusIcon />
+                      <span>
+                        Odaberite <strong>Dodaj na početni ekran</strong>.
+                      </span>
+                    </li>
+                    <li>
+                      <Smartphone size={18} />
+                      <span>
+                        Dodirnite <strong>Dodaj</strong>. Vaša aplikacija je
+                        spremna.
+                      </span>
+                    </li>
+                  </ol>
+                ) : (
+                  <ol className="install-steps">
+                    <li>
+                      <Download size={18} />
+                      <span>
+                        U meniju preglednika odaberite{" "}
+                        <strong>Instaliraj aplikaciju</strong> ili{" "}
+                        <strong>Dodaj na početni ekran</strong>.
+                      </span>
+                    </li>
+                    <li>
+                      <Smartphone size={18} />
+                      <span>
+                        Potvrdite instalaciju i otvorite novu ikonu Alda
+                        Connect.
+                      </span>
+                    </li>
+                  </ol>
+                )}
+                {prompt && (
+                  <button
+                    className="primary full"
+                    onClick={async () => {
+                      try {
+                        await prompt.prompt();
+                        await prompt.userChoice;
+                        setPrompt(null);
+                      } catch {
+                        setFailure(true);
+                      }
+                    }}
+                  >
+                    <Download size={17} /> Instalirajte aplikaciju
+                  </button>
+                )}
+                <p className="food-footnote">
+                  Vaši podaci ostaju povezani s istim računom. Za učitavanje i
+                  čuvanje novih unosa potrebna je internetska veza.
+                </p>
+              </>
+            )}
             {failure && (
               <p>
                 Priprema instalacije nije uspjela. Osvježite stranicu kada
@@ -195,8 +282,15 @@ export default function InstallApp() {
               </p>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </>
+  );
+}
+function PlusIcon() {
+  return (
+    <span aria-hidden="true" style={{ fontSize: 22, lineHeight: 1 }}>
+      +
+    </span>
   );
 }

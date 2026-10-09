@@ -18,7 +18,7 @@ export default function ThemeControl() {
       document.documentElement.style.colorScheme = dark ? "dark" : "light";
       document
         .querySelector('meta[name="theme-color"]')
-        ?.setAttribute("content", dark ? "#111315" : "#f5f6f8");
+        ?.setAttribute("content", dark ? "#101413" : "#f5f5f5");
     };
     apply();
     media.addEventListener("change", apply);

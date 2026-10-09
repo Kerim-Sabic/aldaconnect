@@ -10,7 +10,7 @@ Use Node 24 and pnpm 11.25.0. Run `pnpm install --frozen-lockfile`, copy `.env.e
 
 ## Hosting and identity
 
-Web app: https://aldaconnect.fit. `www` redirects to the apex. Vercel project `fitness-workspace`, team `amuos-projects`, root `apps/web`, Frankfurt functions. The custom domain is publicly accessible with application authentication; preview deployment protection remains enabled. This is a development release, not a commercial or clinical launch.
+Source repository: https://github.com/Kerim-Sabic/aldaconnect. New Vercel project: `aldaconnect`, team `kerimsabic-6594s-projects`, application root `apps/web`. The earlier `aldaconnect.fit` deployment is separate. This is a development release, not a commercial or clinical launch.
 
 Supabase project `fitness-platform`, ref `uyzxiyyjuijbfredvhpg`, Free plan, EU Ireland. Ten migrations are applied as of 8 October 2026. Apply migrations in filename order in a new project. All application tables have RLS. No service-role secret is used by the app. The private-records bucket has no object access policies; storage-bucket uploads remain unavailable. Synthetic lab PDFs use authenticated RPC access to private database bytes (2 MB limit).
 
@@ -20,7 +20,7 @@ User-requested persistent username accounts include administrator Admin, trainer
 
 ## Implemented flows
 
-Member login/signup, up to seven adaptive general onboarding steps, selectable module interests with later editing, seven available modules (four core modules, private cycle diary, shared product records and synthetic labs), assigned plan versions, workout sessions, rep and timed-set logs, completion, check-ins and expert review tasks, basic nutrition/recovery diary, coaching messages and trainer invitation tokens. Invitations can target an email or an existing username; links expire after seven days. Trainers copy/share invitation links; automatic trainer invitation email dispatch is not yet implemented.
+Member login/signup, up to seven adaptive general onboarding steps, selectable module interests with later editing, seven available modules (four core modules, private cycle diary, shared product records and synthetic labs), assigned plan versions, workout sessions, rep and timed-set logs, completion, check-ins and expert review tasks, daily calorie and hydration tracking, a seven-day calorie chart, reviewed camera estimates, nutrition/recovery diary, coaching messages and trainer invitation tokens. Invitations can target an email or an existing username; links expire after seven days. Trainers copy/share invitation links; automatic trainer invitation email dispatch is not yet implemented.
 
 Admin has a profile roster, read-only client/trainer/doctor previews, module availability and basic activity history. Alda is an active trainer assigned to Amrudin. Amrudin's profile now reports onboarding completed; his intake answers were not inspected. Advanced expert spaces remain in preparation.
 
@@ -36,7 +36,6 @@ Manual browser acceptance covers local coaching flows and expanded onboarding, p
 
 Professional credential/organization onboarding, paid entitlements and regional merchant setup, independent program catalogue, scheduling/progression, full nutrition planning, private file scanning/upload lifecycle, advanced cycle/rehab/labs/medication workflows, wearables, community, complete privacy lifecycle and native apps. Clinical activation requires qualified service ownership. No clinical or PED protocol advice is generated.
 
-
 ## Private cycle diary — 8 October 2026
 
 Owner-only daily bleeding, optional pain/symptoms/notes, dated history, edit, recoverable removal and restoration are implemented. Cycle entries are fetched separately from coaching snapshots and excluded from trainer/admin previews. Authenticated data export includes the owner’s cycle entries. No predictions, automatic training changes or expert sharing is implemented. Migration 007 and rollback-only live-cycle smoke passed; local browser checks cover save, refresh and remove/restore.
@@ -47,8 +46,8 @@ Live device connections are deferred by the user. Medication, supplement and PED
 
 Migration 009 adds a test-only lab workflow: PDF upload/download (2 MB), active assigned-doctor access with a separate client grant, immutable attributed review notes, and owner remove/restore. Admin previews fetch no private labs. The Nabil LabBridge report engine produces a conspicuously fictional sample with no signature/stamp; this is PDF export/import, not a live analyzer connection. Real clinical files, malware scanning, production storage lifecycle and structured-result integration remain pending. The marked doctor account is created through an authenticated administrator API which refuses to overwrite an existing username. No credentials or clinical files belong in Git.
 
-## Visual system and installed-app updates — 8 October 2026
+## Mobile redesign and installed-app updates — 9 October 2026
 
-The latest redesign replaces the private-club direction at the user's request: soft neutral surfaces, native system typography, evergreen actions and a new vector identity. The daily workout shows actual saved-set progress; quieter activity summaries and focused forms support the existing workflows. System/light/dark themes persist locally. Clients and trainers retain five-destination mobile navigation, with optional tools in the More drawer. Drawers and workspace dialogs trap keyboard focus, close with Escape when allowed, restore focus and lock background scrolling. Doctor and administrator views share the same tokens. Sign-in uses one locally hosted generated fitness photograph; provenance is in `docs/design-assets.md`. App icons and the public offline screen match the new identity. See `apps/web/DESIGN.md` for the current system.
+The current design follows the user's mobile fitness references, with locally bundled Geist typography, a neutral canvas, deep green and lime accents, a new generated monochrome identity, compact calorie/water tiles, bottom sheets and floating phone navigation. Daily calorie history, a seven-day chart, recent-meal reuse and camera barcode/QR scanning are implemented. Packaged-food calories come from Open Food Facts and scale to the entered portion. Manual entry remains available; no OpenAI key is required. See `docs/nutrition.md` for setup, privacy and verification boundaries, `docs/design-assets.md` for generated artwork provenance, and `apps/web/DESIGN.md` for the visual system. Theme selection, role permissions and keyboard focus handling are preserved. Settings now includes an installation guide tailored to the device.
 
 The public, no-store `/api/release` endpoint supplies a build-specific release ID. Open apps check on focus, reconnection, visibility and every five minutes. A new version offers an explicit update; active workouts, queued sets, saves and workspace dialogs block reload. Other unsaved forms require saving before the confirmation. Closed apps receive current network content when reopened. Private responses remain uncached. Actual physical iOS/Android installation and cross-deployment update-prompt acceptance remain outstanding.

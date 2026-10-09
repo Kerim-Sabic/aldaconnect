@@ -1,13 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./interface.css";
+import "./mobile-first.css";
+import { GeistSans } from "geist/font/sans";
 import InstallApp from "@/components/install-app";
 const themeScript = `(function(){try{var t=localStorage.getItem('alda-theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})()`;
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f5f6f8",
+  themeColor: "#f5f5f5",
 };
 export const metadata: Metadata = {
   title: "Alda Connect · Vaš prostor",
@@ -18,7 +20,7 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Alda Connect",
   },
-  icons: { icon: "/icons/mark.svg", apple: "/icons/apple-touch-icon.png" },
+  icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
 };
 export default function RootLayout({
   children,
@@ -30,7 +32,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body>
+      <body className={GeistSans.variable}>
         {children}
         <InstallApp />
       </body>

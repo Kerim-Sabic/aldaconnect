@@ -9,6 +9,7 @@ import {
 import { focusScope } from "./focus-scope";
 import Brand from "./brand";
 import ThemeControl from "./theme-control";
+import { dayKey, nutritionTotals } from "@/lib/nutrition";
 import dynamic from "next/dynamic";
 const moduleLoading = () => (
   <p className="module-loading" role="status">
@@ -27,6 +28,13 @@ const MedicationRecords = dynamic(() => import("./medication-records"), {
 const LabRecords = dynamic(() => import("./lab-records"), {
   loading: moduleLoading,
 });
+const Nutrition = dynamic(() => import("./nutrition"), {
+  loading: moduleLoading,
+});
+const MealComposer = dynamic(
+  () => import("./nutrition").then((m) => m.MealComposer),
+  { loading: moduleLoading },
+);
 const DoctorWorkspace = dynamic(() => import("./doctor-workspace"), {
   loading: moduleLoading,
 });
@@ -42,6 +50,7 @@ import {
   Bell,
   BookOpen,
   CalendarDays,
+  Camera,
   ChartNoAxesCombined,
   Check,
   ChevronRight,
@@ -51,6 +60,7 @@ import {
   Droplets,
   Dumbbell,
   Heart,
+  Flame,
   LayoutDashboard,
   Leaf,
   LogOut,
@@ -851,6 +861,7 @@ function WorkspaceView({
           label: language === "bs" ? "Plan" : "Moj plan",
           icon: CalendarDays,
         },
+        { id: "nutrition", label: "Ishrana", icon: Flame },
         {
           id: "progress",
           label: language === "bs" ? "Napredak" : "Napredak",
@@ -887,6 +898,7 @@ function WorkspaceView({
           ? "Trening"
           : "Vaš prostor");
   const client = data.clients.find((c) => c.id === clientId);
+  const foodToday = nutritionTotals(data.diary, dayKey());
   const descriptions: Record<string, string> = {
     today: "Vaš trening i svakodnevne navike, na jednom mjestu.",
     queue: "Izvještaji, klijenti i sljedeći koraci.",
@@ -899,7 +911,7 @@ function WorkspaceView({
     messages: expert
       ? "Razgovori s vašim klijentima."
       : "Razgovori s vašim timom.",
-    nutrition: "Obroci, hidratacija i dnevne bilješke.",
+    nutrition: "Jednostavan pregled vaših obroka i kalorija.",
     cycle: "Vaše bilješke, dostupne samo vama.",
     medications: "Evidencija s autorima i historijom izmjena.",
     labs: "Testni nalazi i pregled uz vašu dozvolu.",
@@ -924,9 +936,9 @@ function WorkspaceView({
           <p>{plan.reason}</p>
           <div className="workout-meta">
             <span>
-              <Clock size={15} /> 45–55 min
+              <Dumbbell size={15} /> {plan.exercises.length} vježbi
             </span>
-            <span>{plan.exercises.length} vježbi</span>
+            <span>{total} serija</span>
             <span>Teretana</span>
           </div>
           <button
@@ -1027,7 +1039,7 @@ function WorkspaceView({
   );
 
   return (
-    <div className="app">
+    <div className="app" data-view={view}>
       {previewId && (
         <div className="preview-banner">
           <strong>Administratorski pregled · bez izmjena</strong>
@@ -1131,6 +1143,9 @@ function WorkspaceView({
               <Menu size={22} />
             </button>
             <span>{expert ? "Stručni prostor" : "Vaš prostor"}</span>
+            <span className="mobile-brand">
+              <Brand />
+            </span>
             <ChevronRight size={14} />
             <strong>{title}</strong>
           </div>
@@ -1205,203 +1220,167 @@ function WorkspaceView({
           </div>
 
           {view === "today" && (
-            <>
-              <div className="daily-strip">
-                <div>
-                  <span className="strip-icon">
-                    <Sun size={21} />
+            <div className="day-layout">
+              <div className="day-primary">
+                <div className="day-week" aria-label="Ova sedmica">
+                  {["P", "U", "S", "Č", "P", "S", "N"].map((day, index) => (
+                    <div
+                      key={index}
+                      className={
+                        index === (today.getDay() + 6) % 7 ? "is-today" : ""
+                      }
+                    >
+                      <span>{day}</span>
+                      <strong>
+                        {new Date(
+                          monday.getFullYear(),
+                          monday.getMonth(),
+                          monday.getDate() + index,
+                        ).getDate()}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+                <div className="food-section-heading">
+                  <h2>Vaš sljedeći korak</h2>
+                  <span>{session ? "U toku" : "Trening"}</span>
+                </div>
+                {selected.includes("training") && planCard}
+                <div className="day-quick-actions">
+                  <button onClick={() => setModal({ kind: "scanMeal" })}>
+                    <Camera size={19} />
+                    <span>Skenirajte obrok</span>
+                    <ArrowUpRight size={16} />
+                  </button>
+                  <button onClick={() => setModal({ kind: "checkin" })}>
+                    <Plus size={19} />
+                    <span>Kratki izvještaj</span>
+                    <ArrowUpRight size={16} />
+                  </button>
+                </div>
+              </div>
+              <div className="day-secondary">
+                <div className="food-section-heading">
+                  <h2>Ishrana danas</h2>
+                  <button
+                    className="text-link"
+                    onClick={() => changeView("nutrition")}
+                  >
+                    Dnevnik <ArrowRight size={15} />
+                  </button>
+                </div>
+                <div className="day-nutrition-bento">
+                  <section className="day-calories">
+                    <span className="calorie-label">
+                      <Flame size={17} /> Unesene kalorije
+                    </span>
+                    <div className="calorie-number">
+                      {foodToday.calories.toLocaleString("bs-BA")}
+                      <span>kcal</span>
+                    </div>
+                    <p>
+                      {foodToday.meals.length
+                        ? `Obroci danas: ${foodToday.meals.length}`
+                        : "Vaš prvi obrok počinje ovdje."}
+                    </p>
+                    <button
+                      className="primary full"
+                      onClick={() => setModal({ kind: "meal" })}
+                    >
+                      <Plus size={17} /> Dodajte obrok
+                    </button>
+                  </section>
+                  <button
+                    className="day-water"
+                    disabled={busy}
+                    onClick={() => {
+                      void mutate(
+                        "diary",
+                        { kind: "water", label: "Čaša vode", value: 250 },
+                        "Dodano 250 ml vode.",
+                      ).catch(() => {});
+                    }}
+                  >
+                    <Droplets size={19} />
+                    <span>
+                      <strong>Hidratacija</strong>
+                      <small>{foodToday.water} ml danas</small>
+                    </span>
+                    <span className="water-add">+ 250 ml</span>
+                  </button>
+                </div>
+                <div className="food-section-heading">
+                  <h2>Vaš tim</h2>
+                  <button
+                    className="text-link"
+                    onClick={() => changeView("team")}
+                  >
+                    Svi <ArrowRight size={15} />
+                  </button>
+                </div>
+                <button
+                  className="day-team"
+                  onClick={() =>
+                    data.team.length
+                      ? changeView("messages")
+                      : setModal({ kind: "acceptInvite" })
+                  }
+                >
+                  <span className="avatar">
+                    {initials(data.team[0]?.name ?? "Vaš tim")}
                   </span>
                   <span>
                     <strong>
-                      {session
-                        ? "Trening je u toku"
-                        : "Spremni za vaš sljedeći trening"}
+                      {data.team[0]?.name ?? "Povežite se sa stručnjakom"}
                     </strong>
                     <small>
-                      {completed > 0
-                        ? `${completed} / ${total} serija zabilježeno.`
-                        : "Vaš plan vas čeka."}
-                    </small>
-                  </span>
-                </div>
-                <span className="pill sage-pill">
-                  <span className="status-dot" />
-                  {queue.length
-                    ? `${queue.length} serija čeka sinhronizaciju`
-                    : "Sve promjene su sačuvane"}
-                </span>
-              </div>
-              <div className="today-grid">
-                <section>
-                  {selected.includes("training") && planCard}
-                  <div className="activity-summary" aria-label="Vaša aktivnost">
-                    <div>
-                      <span className="summary-icon">
-                        <Dumbbell size={18} />
-                      </span>
-                      <strong>
-                        {data.sessions.filter((s) => s.completed_at).length}
-                      </strong>
-                      <span>Završeni treninzi</span>
-                    </div>
-                    <div>
-                      <span className="summary-icon">
-                        <Activity size={18} />
-                      </span>
-                      <strong>
-                        {completed}
-                        <small> / {total}</small>
-                      </strong>
-                      <span>Serije u planu</span>
-                    </div>
-                    <div>
-                      <span className="summary-icon">
-                        <ClipboardList size={18} />
-                      </span>
-                      <strong>{data.checkins.length}</strong>
-                      <span>Vaši izvještaji</span>
-                    </div>
-                  </div>
-                  <div className="section-title">
-                    <h2>Svakodnevne navike</h2>
-                    <button onClick={() => changeView("settings")}>
-                      Prilagodite <Settings2 size={14} />
-                    </button>
-                  </div>
-                  <div className="essentials">
-                    {selected.includes("nutrition") && (
-                      <button
-                        className="essential"
-                        onClick={() => changeView("nutrition")}
-                      >
-                        <span className="round-icon peach-soft">
-                          <Leaf size={22} />
-                        </span>
-                        <strong>Ishrana</strong>
-                        <p>
-                          Zabilježeni obroci:{" "}
-                          {data.diary.filter((d) => d.kind === "meal").length}
-                        </p>
-                        <span>
-                          Dodajte obrok <ArrowUpRight size={16} />
-                        </span>
-                      </button>
-                    )}
-                    {selected.includes("recovery") && (
-                      <button
-                        className="essential"
-                        onClick={() => setModal({ kind: "recovery" })}
-                      >
-                        <span className="round-icon sage-soft">
-                          <Heart size={22} />
-                        </span>
-                        <strong>Oporavak</strong>
-                        <p>San, energija i kako se danas osjećate</p>
-                        <span>
-                          Kako se osjećate? <ArrowUpRight size={16} />
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                </section>
-                <aside className="right-rail">
-                  <section className="week-card">
-                    <div className="section-title">
-                      <h2>Ove sedmice</h2>
-                      <CalendarDays size={17} />
-                    </div>
-                    <div className="week-days">
-                      {["P", "U", "S", "Č", "P", "S", "N"].map((d, i) => (
-                        <div
-                          className={
-                            i === (today.getDay() + 6) % 7 ? "current" : ""
-                          }
-                          key={i}
-                        >
-                          <span>{d}</span>
-                          <b>
-                            {new Date(
-                              monday.getFullYear(),
-                              monday.getMonth(),
-                              monday.getDate() + i,
-                            ).getDate()}
-                          </b>
-                          {i === (today.getDay() + 6) % 7 ? (
-                            <span className="day-dot" />
-                          ) : (
-                            <i />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="week-note">
-                      <span className="small-dot" />
-                      Vaš planirani trening{" "}
-                      <strong>
-                        {completed}/{total} serija
-                      </strong>
-                    </div>
-                    <div className="progress-track">
-                      <span
-                        style={{
-                          width: `${total ? (completed / total) * 100 : 0}%`,
-                        }}
-                      />
-                    </div>
-                    <button
-                      className="text-link"
-                      onClick={() => changeView("plan")}
-                    >
-                      Pogledajte plan <ArrowRight size={15} />
-                    </button>
-                  </section>
-                  <section className="coach-note">
-                    <span className="eyebrow">UZ VAS</span>
-                    <div className="coach-person">
-                      <span className="avatar sage">
-                        {initials(data.team[0]?.name ?? "Vaš tim")}
-                      </span>
-                      <span>
-                        <strong>
-                          {data.team[0]?.name ?? "Vaš tim podrške"}
-                        </strong>
-                        <small>
-                          {data.team.length
-                            ? data.team[0]?.role === "doctor"
-                              ? "Doktor"
-                              : data.team[0]?.role === "trainer"
-                                ? "Lični trener"
-                                : "Stručna podrška"
-                            : "Još niste povezani"}
-                        </small>
-                      </span>
-                      <ShieldCheck size={17} />
-                    </div>
-                    <p>
-                      “
-                      {data.messages
-                        .filter((m) => m.sender_id !== data.actor.id)
-                        .at(-1)?.body ??
-                        "Prava podrška počinje povezivanjem. Prihvatite poziv da započnete."}
-                      ”
-                    </p>
-                    <button
-                      className="text-link"
-                      onClick={() =>
-                        data.team.length
-                          ? changeView("messages")
-                          : setModal({ kind: "acceptInvite" })
-                      }
-                    >
                       {data.team.length
                         ? "Pošaljite poruku"
-                        : "Prihvatite poziv"}
-                      <ArrowUpRight size={15} />
-                    </button>
-                  </section>
-                </aside>
+                        : "Prihvatite poziv svog tima"}
+                    </small>
+                  </span>
+                  <MessageCircle size={19} />
+                </button>
+                {queue.length > 0 && (
+                  <p className="food-footnote" role="status">
+                    {queue.length} serija čeka sinhronizaciju.
+                  </p>
+                )}
               </div>
-            </>
+              <section className="day-activity">
+                <div className="food-section-heading">
+                  <h2>Vaša aktivnost</h2>
+                  <button
+                    className="text-link"
+                    onClick={() => changeView("progress")}
+                  >
+                    Pregled <ArrowRight size={15} />
+                  </button>
+                </div>
+                <div className="day-stats">
+                  <div>
+                    <span>Treninzi</span>
+                    <strong>
+                      {data.sessions.filter((s) => s.completed_at).length}
+                    </strong>
+                    <small>završeno ukupno</small>
+                  </div>
+                  <div>
+                    <span>Serije</span>
+                    <strong>
+                      {completed}
+                      <em> / {total}</em>
+                    </strong>
+                    <small>u aktivnom planu</small>
+                  </div>
+                  <div>
+                    <span>Izvještaji</span>
+                    <strong>{data.checkins.length}</strong>
+                    <small>poslano vašem timu</small>
+                  </div>
+                </div>
+              </section>
+            </div>
           )}
 
           {view === "workout" && (
@@ -1577,7 +1556,7 @@ function WorkspaceView({
                   </aside>
                 </div>
               ) : (
-                { planCard }
+                planCard
               )}
             </>
           )}
@@ -1640,7 +1619,7 @@ function WorkspaceView({
                   </footer>
                 </div>
               ) : (
-                { planCard }
+                planCard
               )}
               {view === "calendar" && (
                 <div className="information">
@@ -1655,94 +1634,21 @@ function WorkspaceView({
           )}
 
           {view === "nutrition" && (
-            <>
-              <div className="nutrition-banner">
-                <span className="round-icon peach-soft">
-                  <Leaf size={25} />
-                </span>
-                <div>
-                  <span className="eyebrow">VIŠE SVJESNOSTI</span>
-                  <h2>Ishrana bez komplikacija.</h2>
-                  <p>
-                    Zabilježite obrok ili čašu vode. Počnite onim što vam
-                    odgovara.
-                  </p>
-                </div>
-                <button
-                  className="primary"
-                  onClick={() => setModal({ kind: "meal" })}
-                >
-                  <Plus size={16} /> Dodajte obrok
-                </button>
-              </div>
-              <div className="metric-grid">
-                <div className="metric">
-                  <Leaf size={20} />
-                  <span>Zabilježeni obroci</span>
-                  <strong>
-                    {data.diary.filter((d) => d.kind === "meal").length}
-                  </strong>
-                  <small>Vaši unosi, bez procjene kalorija</small>
-                </div>
-                <button
-                  className="metric"
-                  onClick={() =>
-                    mutate(
-                      "diary",
-                      { kind: "water", label: "Čaša vode", value: 250 },
-                      "Unos vode je sačuvan.",
-                    )
-                  }
-                >
-                  <Droplets size={20} />
-                  <span>Zabilježena voda</span>
-                  <strong>
-                    {data.diary
-                      .filter((d) => d.kind === "water")
-                      .reduce((s, d) => s + Number(d.value), 0)}
-                    <em>ml</em>
-                  </strong>
-                  <small>
-                    Dodajte čašu · 250 ml <Plus size={13} />
-                  </small>
-                </button>
-              </div>
-              <div className="section-title">
-                <h2>Vaš dnevnik ishrane</h2>
-              </div>
-              {data.diary.filter((d) => ["meal", "water"].includes(d.kind))
-                .length ? (
-                <div className="diary-list">
-                  {data.diary
-                    .filter((d) => ["meal", "water"].includes(d.kind))
-                    .map((d) => (
-                      <div className="diary-line" key={d.id}>
-                        <span className="round-icon sage-soft">
-                          {d.kind === "meal" ? (
-                            <Leaf size={19} />
-                          ) : (
-                            <Droplets size={19} />
-                          )}
-                        </span>
-                        <div>
-                          <strong>{d.label}</strong>
-                          <small>
-                            {new Date(d.created_at).toLocaleDateString()} ·{" "}
-                            {time(d.created_at)}
-                          </small>
-                        </div>
-                        {d.value && <span>{d.value} ml</span>}
-                      </div>
-                    ))}
-                </div>
-              ) : (
-                <div className="empty-state">
-                  <Leaf size={30} />
-                  <h3>Novi početak za danas.</h3>
-                  <p>Dodajte prvi obrok. Dnevnik ne mora biti savršen.</p>
-                </div>
-              )}
-            </>
+            <Nutrition
+              entries={data.diary}
+              busy={busy}
+              readOnly={Boolean(previewId)}
+              onAdd={(camera) =>
+                setModal({ kind: camera ? "scanMeal" : "meal" })
+              }
+              onWater={() =>
+                mutate(
+                  "diary",
+                  { kind: "water", label: "Čaša vode", value: 250 },
+                  "Dodano 250 ml vode.",
+                )
+              }
+            />
           )}
 
           {view === "medications" &&
@@ -2345,6 +2251,20 @@ function WorkspaceView({
               )}
               <div className="settings-layout">
                 <section className="settings-card">
+                  <div className="settings-app-tools">
+                    <div>
+                      <strong>Izgled aplikacije</strong>
+                      <ThemeControl />
+                    </div>
+                    <button
+                      className="secondary"
+                      onClick={() =>
+                        window.dispatchEvent(new Event("alda-install"))
+                      }
+                    >
+                      Dodajte aplikaciju na telefon <ArrowUpRight size={15} />
+                    </button>
+                  </div>
                   <div className="section-title">
                     <div>
                       <span className="eyebrow">VAŠ PROSTOR, VAŠ IZBOR</span>
@@ -2552,7 +2472,7 @@ function WorkspaceView({
           .filter((n) =>
             (expert
               ? ["queue", "clients", "calendar", "messages"]
-              : ["today", "plan", "progress", "messages"]
+              : ["today", "plan", "nutrition", "messages"]
             ).includes(n.id),
           )
           .map((n) => (
@@ -2576,7 +2496,7 @@ function WorkspaceView({
             !(
               expert
                 ? ["queue", "clients", "calendar", "messages"]
-                : ["today", "plan", "progress", "messages", "workout"]
+                : ["today", "plan", "nutrition", "messages", "workout"]
             ).includes(view)
               ? "page"
               : undefined
@@ -2723,35 +2643,20 @@ function WorkspaceView({
                   Završite pregled <Check size={16} />
                 </button>
               </form>
-            ) : modal?.kind === "meal" ? (
-              <form
-                onSubmit={(e) =>
-                  formSubmit(e, async (f) => {
-                    await mutate(
-                      "diary",
-                      { kind: "meal", label: f.get("label") },
-                      "Obrok je zabilježen.",
-                    );
-                    setModal(null);
-                  })
-                }
-              >
-                <span className="eyebrow">DNEVNIK ISHRANE</span>
-                <h2 id="dialog-title">Šta je na vašem tanjiru?</h2>
-                <p>Opišite obrok svojim riječima.</p>
-                <label>
-                  Obrok
-                  <textarea
-                    required
-                    name="label"
-                    maxLength={200}
-                    placeholder="npr. jaja, integralni hljeb i paradajz"
-                  />
-                </label>
-                <button className="primary full" disabled={busy}>
-                  Sačuvajte obrok <Check size={16} />
-                </button>
-              </form>
+            ) : modal?.kind === "meal" || modal?.kind === "scanMeal" ? (
+              <MealComposer
+                camera={modal.kind === "scanMeal"}
+                entries={data.diary}
+                busy={busy}
+                onSave={async (label, calories) => {
+                  await mutate(
+                    "diary",
+                    { kind: "meal", label, value: calories },
+                    "Obrok je sačuvan.",
+                  );
+                  setModal(null);
+                }}
+              />
             ) : modal?.kind === "recovery" ? (
               <form
                 onSubmit={(e) =>

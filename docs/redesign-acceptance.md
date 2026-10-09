@@ -1,34 +1,21 @@
-# Redesign acceptance — 8 October 2026
+# Redesign acceptance — 9 October 2026
 
 ## Scope
 
-Complete interface redesign across authentication, daily coaching, workout entry, plans, progress, habits, messages, settings, optional private records, administrator and doctor surfaces. Existing identity, privacy permissions, data models and APIs are preserved. The removed club stylesheet is replaced by the current semantic interface system. App icons, browser theme colors and the public offline page match the new identity.
+Second redesign follows the supplied mobile fitness references: locally bundled Geist, neutral canvas, deep green/lime accents, new generated monochrome identity, compact daily dashboard, floating phone navigation and bottom sheets. Shared styling covers client, trainer, admin, doctor, authentication, forms, dialogs, settings and offline surfaces. Existing permissions and workflows are retained.
+
+Calorie tracking adds manual entries, recent meals, daily history, seven-day chart, hydration and reviewed packaged-food barcode/QR lookup. No OpenAI credential is required. New install guidance handles Apple and other browsers; icons, standalone manifest, safe areas and public offline fallback match the identity. Private pages and APIs remain uncached.
 
 ## Automated verification
 
-- TypeScript: passed.
-- Existing test suite: 32 tests passed across six files, including domain behavior, persistence, authorization, migrations and service-worker caching.
-- Optimized Next.js production build: passed; all 15 pages generated. No temporary review route remains in the build.
-- Diff whitespace check: passed.
-- No dependency or lockfile changes.
+- 49 tests pass across nine files, including existing authorization/persistence checks and new nutrition/barcode tests.
+- TypeScript and optimized Next.js production build pass; 16 routes, including nutrition product lookup.
+- New dependencies are locally bundled Geist and the lazy-loaded ZXing browser reader.
 
 ## Browser verification
 
-Verified with isolated fictional localhost fixtures, then with the optimized production server:
+Fictional localhost fixtures were used for responsive dashboard/nutrition/workout/settings at 390px and 320px, desktop at 1440px, light/dark appearance, manual meal persistence, daily history, hydration, installation help, drawer and dialog behavior. Real Open Food Facts staging lookup recognized Nutella at 539 kcal/100g; 15g calculated 81 kcal and 30g calculated 162 kcal. No private cloud record was changed.
 
-- Desktop daily dashboard and trainer task queue.
-- Responsive phone layouts at 390px and 320px; no horizontal document overflow observed on the checked screens.
-- Light and dark appearance, with persistent selection and matching browser theme color.
-- Workout start, saving a set and updated saved-set progress.
-- Client check-in submission, trainer receipt and saving a review response.
-- Module settings save and private cycle diary rendering.
-- Sign-in tabs, logout and the locally hosted generated studio photograph.
-- Drawer and dialog keyboard focus, Shift+Tab wrap, Escape dismissal and focus restoration.
-- Administrator overview and roster, and doctor record tabs, reviewed using a temporary isolated component fixture. The fixture loaded no private clinical data and was removed before the final production build.
-- Updated PWA icons, public offline styling and privacy-preserving service-worker cache version.
+## Boundaries
 
-Screenshots of the production localhost app were saved as client desktop, client mobile, trainer desktop and sign-in previews in the task's outputs directory. Screenshot data is fictional.
-
-## Remaining acceptance boundaries
-
-This redesign does not add billing or activate deferred product modules. Browser QA does not establish real inbox delivery, physical iOS/Android installation, production clinical-file handling or live cross-deployment update prompt acceptance. Existing privacy and development notices remain visible.
+Physical phone camera scanning and iOS/Android home-screen installation require device acceptance. This release does not activate billing or deferred clinical modules. The new source repository is Kerim-Sabic/aldaconnect; the old custom-domain deployment is separate.

@@ -3,27 +3,27 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#f5f6f8" />
+    <meta name="theme-color" content="#f5f5f5" />
     <title>Alda Connect · Bez veze</title>
-    <link rel="icon" href="/icons/mark.svg" />
+    <link rel="icon" href="/icons/icon-192.png" />
     <style>
       :root {
         color-scheme: light dark;
-        --paper: #f5f6f8;
+        --paper: #f5f5f5;
         --surface: #fff;
         --ink: #1d2228;
         --muted: #666f78;
         --line: #e2e5e9;
-        --accent: #246749;
+        --accent: #183e35;
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --paper: #111315;
-          --surface: #1c1f22;
+          --paper: #101413;
+          --surface: #19201e;
           --ink: #f0f3f5;
           --muted: #a1a9b1;
           --line: #33393e;
-          --accent: #a4dec0;
+          --accent: #dfff85;
         }
       }
       * {
@@ -55,7 +55,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        font-weight: 650;
+        font-weight: 450;
         font-size: 21px;
         letter-spacing: -0.04em;
       }
@@ -65,7 +65,7 @@
       }
       h1 {
         font-size: 34px;
-        font-weight: 650;
+        font-weight: 450;
         line-height: 1.15;
         letter-spacing: -0.04em;
         margin: 36px 0 18px;
@@ -82,7 +82,7 @@
         color: var(--surface);
         padding: 12px 20px;
         min-height: 48px;
-        border-radius: 12px;
+        border-radius: 999px;
         text-decoration: none;
         font-size: 14px;
         font-weight: 600;
@@ -110,21 +110,7 @@
   <body>
     <main>
       <div class="brand">
-        <svg
-          width="36"
-          height="36"
-          viewBox="0 0 28 28"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M5 21 12 6a2.2 2.2 0 0 1 4 0l7 15M9 16h10"
-            stroke="currentColor"
-            stroke-width="2.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          /></svg
-        >alda<span>connect</span>
+        <img width="36" height="36" style="border-radius:10px" alt="" src="data:image/webp;base64,UklGRvIKAABXRUJQVlA4IOYKAAAQOQCdASoAAQABPikSiEMhoSERSGzIGAKEtLd+Pkyb65F/07d65PL+v5Z/kXa5/PPxj6+nv36uful/fdMr+F/XH7J/SP2r5K+AF+F/wr+zfkp+SHIk5r5gXtV8//wX5Xf2znU+UD3AP1h/zP5gcxvQA/nf9x/zf3O/S9/Cf6f/I/j97Yvzr+3f63/KflF9g/8b/n/+U/uP7p/3n///+n7gPYN+zvsa/raNCosqtNSqssx7ozk6GEhFVX9kH4XRkHl6XzhyT423/9byeE7eC536ybtkRgkDY4cjHsoYDtirtMA4b8pLQguWgp08rAGc1X3WmLPM4vWAmysepV99qg2GOhFukiEvZaX4nBrfktYtGKwcF7PhjIAXQ6fU8aCTuUx//JOx4uIq7bJ8mJhPI/xZVlBDstJOHlNTnley3z2Nghq9lYwgViBsZx9l9jM36hD68itr/FlV/U/hY7sCppFenZXY8ozDWHNLryMnTe06O+DNDFnXQuctuZVg4zH+R9WryHwtW+/zXuiV63dpZtL0r2xECIKVbDH1sjrjILkOBpikVtfFuhEDDmrTJeh6aF5ZUvYhHD9Tn+L0ZB1JoSB3zhu7f9jkVWKmWaV0q9p0mAAA/v/bybOINzdNG7CUzcYlXduLjOgy+ZcBAtiMSQcheWT1ubBXV7Qc8aHHCB8cPTR7meI9Vx+VyQt+Qxw8+VnlkG73IfwzH2IaXUnc3CKSVrcWU1o4K5svO5sxdphXd4uYYX4Etx/WgwGKeYnCyZv/TojsogElbUg9HCvB3JJJ8EIZu9xvlsy7+w0w0tUt4MqmvxkOwMJU6bRUC/LgPu6sQZAvqrqqg2ZH3h4p5BtGWneQjicz+zacr/ihvPboMBspcGEBd5+Vc72UCeHAgFTrPQLugTQHCxBDSkP92yKt8urCCSoIAc5L7DfdvHF2EIOetamaZJjs4X+e+dKJzWjtXGBrY3l4H1IuH75RT1/NWJ9PlpKjgAA/eLo4CNnbOsdfPmxZl+k2S/0kDS1Bl7bYktc3vePNqrs4XTRggjQ31du5O92mP0GL2JhyZB/GLzghV/BRiVr4L+2KnvwHV9Rz9uZOOxrh6Xstvp5KSz7i/b3wzs8BD0aRiq8WfYB/4O31BlWLJk6KQw1MjtcUkRuUx1Fdh89BUYmTwYODpDGsCsbWV92f8hSsu/eKlf9DsbYp3oK+RqesdW/HUowaIp/46AaNeyf8/upOJ+HGgG35yuk0f5aL8EtkBnde1yEByajiZ8quxrQWwNR+1ZN9Q5KlS8Mkb0o151RkqYus1fxxsZHTdIQvyC8z59G8hC1y6ZbRgAOnaqAYy48wo2jd8mb5AlZmeXQat40qwjizqRBp70iGm04liIA36QyIbKXyE/Zc1Ch6gTyg+7KpzX3ceZ1NCPNdp5B5GbQi5L8atQC/YaavhWVGcYjvrkV0TaiF+q2+d0rmuA+mrvT+ItBBRTLxVLA9++Sbb9HQG1NgOmPARCWxaDXdIJPjkFZRs8J4p7GVTOgcAR5G5Zhmf+Ic04mpnMNmsifF/Qmp43nEow899xaVTdpGpiXvxK1G65gMkExjBBB+6oUDyTujC6Qk2I1eIAWcqlJvrihNIRjS+sYzBRTABpGH09dmdFNFhMP3wZwxm5zeXK8FXN5eTO1z864BnWZEkQFmd+dsrUnbamat1j+EGOfHXa6vmP9VtR4miAI9eS86J5MnDl1rzTk+01aHZSolUBlO3hiY+Xx3x+8wPzawsIgvfrPd1QlsKe5d4LsZpO+hTWG1Z/p7zRCzrLRaPSf9z31Ooji633xgOOLwKrOJo50S2hDePudyyj98HAlRH8yqShGpFnNLpXSWdGZFq1fe4+6Vx4cd5OvTOUu+XDfVc2zc2nn2QWP281qUOTWCjOgIObecKNaJdMcFAwLpITOsJYBF94bVRnd6yHFtxQAzapGLd3+jMgbjfA+rzlAOKJ6JGq+v0WYLuteK7/pKUuOrPRX5LAEt/6QWcpxxH4NAjOKCrLlEfyi840kDHHRKzOXI9NukVpdwRvpVJ5rKmaG0PJf7IcaMOZhPkC8agqHRer+cXapcy1uOoi2lCpOzMw9a080RQVxt3KfI3XkSNMhD/IN16qJ8RXWlnzSGw9xCZIdkNwaeSX58aonaTrLhC++SrBN39qq/A9fzEpcr1QFcmoRZi8uguLFbN8+ZuL2naIhGDD3o+rEpsVbKpAs5jPbS/5I6sl/aiuMeLcSNOXY/NcngYArspANeWcd27LCS6GCmx5KXGAo1hYbNrW63TlLdHSJYKyrXh2DhkjXGpkEdb/22/o8LfslYIzKHszz0D27q+kmZ9zUL+HwuaZRtBYoBB2xJ2TxQEhTAwebErjv1S4HddjiVe/S018J6eM7NhaFwxWg+mvwOID2EqCUqxfP/NsuKP0TXpcbtlChonWl8dQFL40U6f2+OrlPWm8C5+Z8UP1/5oZHOJlexoov5p0PYFDFYbiT5eOEwgDtD///8c0/b8xUB+csZj/EjRQ7b2BspnlBrOJcJFRfMKgpAPQdeKRyBQJlmoQ1ZC41TrQw6fGZfj0sTJeK1Yqcd5wM6OCeQMi9dxzR8ksBfwydZhKGCW2oOhD5FmKE02jS0jQIbenBUcnCQFR5L8bGeMLu4z1O8zFlCuXJ+y6ERC0wUnh71fhkYAE5T0zrdptYv3fYG+31MeVGUCDcBTPgJyzi2YPJl+ZT6r/j5zZMH21CoRlCBPRvCAf+GS3tt8wDNuGR5GRo/AUBAVDMQ+Fkg9kAQDFIpfkF53/7Kv0aWGN3E8Y17kkUGeoDfxnN2B//HbresqbJsK3oQQKwiMw8HjPfanfhvnYh6Ck48XBf/xaBN9daU7daYJfX3YEeUoRRJj3S6DbFsBtP9D2If0jHxhWd9W4xXtyYNbmyu07i+fQcKYyDJysVi4c9KAQSd8w9ihmOH9idiaG3mghsRrbY7e9S/DtXSe7INM5gbmcYrf3VEKhoakJnH+wlCMQjxAMEBMYWQdaTjNKUGfUCn9Mn6rLmd40cCqw9Imnuy1YZvro9xjdlkvFrHjc22FjOZK+nN9As2kWszehBd4WVWvRW98o+EUdW4BJkPOMtpJSWDJhUp7NtKMzcx0gzVU0U3BTc0scbaswhnPbenrxtCNr4mxfvaRH+PDhSYUxKO9zAjXD4r+usvulNyNDp/ZS2M8sRZf8dq6uYqm1UINBfhAot54vkdcjhMMx8mufsPWgS7N0L/AkqwnAvL5DpCaoJ7bX25b68hIhYsguhqmWO85KeL1O8t5O3kmOtEqdWZWwA4RvgRxrV/DvVPZ1mBxv17M0KbKR1eNWkfunx2JmK/rYf0QuuWK+PBW+EYRM4fHn/0c475F/Tye/oKyORVYoYTVfg4QxxBaZpIQMzvg4jE65V5jG99uT1E/3eg8S1T0Dd5SkfAKxteQJoz0JhvkEZNQ2pAMoa1m2xHg5XbuTmnvNc+0teFPq5vLWDY/T6QoB7EVX/njHu+7ZhbBQB+gqf3l89Z08i1XESLxAiVSGCaHNf9PUCwy4OscU9bq52O4KJThb1TJXFqPFuGfTMIQuLj+UFDAar3VAgxb0L767MpyhthCT2W1yX/19MsDjudvdV5pJetSbvrsbuPZSLkTQ4Y407TOFgzJLX5OPlcuO6/ToCxobb+p1w24G3bu8KS8OjhRLIvIRC4pqDg/39vNYws0DBKm3pAAAA=" />alda<span>connect</span>
       </div>
       <h1>Trenutno ste bez veze.</h1>
       <p>

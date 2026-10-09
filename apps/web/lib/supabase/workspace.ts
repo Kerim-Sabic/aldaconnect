@@ -4,6 +4,7 @@ import { supabaseServer } from "./server";
 import { cookies } from "next/headers";
 import { usernameCall, usernameCookie, usernameToken } from "./username";
 import { onboardingIntake } from "@/lib/onboarding";
+import { diaryInput } from "@/lib/nutrition";
 const reply = (body: unknown, status = 200) =>
   NextResponse.json(body, {
     status,
@@ -74,6 +75,7 @@ export async function cloudPost(req: NextRequest) {
       .parse(JSON.parse(text));
     if (action === "onboard")
       payload.intake = onboardingIntake.parse(payload.intake);
+    if (action === "diary") Object.assign(payload, diaryInput.parse(payload));
     const sb = await supabaseServer();
     if (
       action === "login" &&

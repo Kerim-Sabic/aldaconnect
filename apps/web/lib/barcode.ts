@@ -1,0 +1,120 @@
+export function productCode(input: string): string | null {
+  let code = input.trim().replace(/[ -]/g, "");
+  if (!/^\d+$/.test(code)) {
+    try {
+      const url = new URL(input.trim());
+      if (url.protocol !== "https:") return null;
+      const off = /(^|\.)openfoodfacts\.(org|net)$/.test(url.hostname);
+      code =
+        (off
+          ? url.pathname.match(/\/(?:product|produit)\/(\d{8,14})(?:\/|$)/)?.[1]
+          : url.pathname.match(/\/01\/(\d{14})(?:\/|$)/)?.[1]) ?? "";
+    } catch {
+      return null;
+    }
+  }
+  if (![8, 12, 13, 14].includes(code.length) || !/^\d+$/.test(code))
+    return null;
+  const digits = [...code].map(Number);
+  const check = digits.pop();
+  const sum = digits
+    .reverse()
+    .reduce(
+      (total, digit, index) => total + digit * (index % 2 === 0 ? 3 : 1),
+      0,
+    );
+  return (10 - (sum % 10)) % 10 === check ? code : null;
+}
+export type FoodProduct = {
+  code: string;
+  name: string;
+  brand: string;
+  caloriesPer100: number;
+  unit: "g" | "ml";
+  serving: number | null;
+  source: string;
+};
+export function portionCalories(per100: number, amount: number) {
+  return Math.round((per100 * amount) / 100);
+}
+type Nutrient = { value?: number; unit?: string; source?: string };
+type NutritionSet = {
+  per?: string;
+  per_quantity?: number;
+  per_unit?: string;
+  preparation?: string;
+  nutrients?: Record<string, Nutrient>;
+};
+export function readFoodProduct(
+  code: string,
+  raw: Record<string, unknown>,
+): FoodProduct | null {
+  const p = raw.product as Record<string, unknown> | undefined;
+  if ((raw.status !== 1 && raw.status !== "success") || !p) return null;
+  const nutrition = p.nutrition as
+    { aggregated_set?: NutritionSet; input_sets?: NutritionSet[] } | undefined;
+  const aggregate = nutrition?.aggregated_set;
+  let calories: number;
+  let unit: "g" | "ml";
+  let serving: number | null = null;
+  if (aggregate) {
+    if (
+      !["100g", "100ml"].includes(aggregate.per ?? "") ||
+      aggregate.preparation !== "as_sold"
+    )
+      return null;
+    const kcal = aggregate.nutrients?.["energy-kcal"];
+    const kj =
+      aggregate.nutrients?.["energy-kj"] ?? aggregate.nutrients?.energy;
+    const energy = typeof kcal?.value === "number" ? kcal : kj;
+    if (!energy || energy.source === "estimate") return null;
+    calories =
+      energy.unit === "kcal"
+        ? Number(energy.value)
+        : energy.unit === "kJ"
+          ? Number(energy.value) / 4.184
+          : NaN;
+    unit = aggregate.per === "100ml" ? "ml" : "g";
+    const portion = nutrition?.input_sets?.find(
+      (set) =>
+        set.per === "serving" &&
+        set.preparation === "as_sold" &&
+        set.per_unit === unit,
+    );
+    serving = portion?.per_quantity ?? null;
+  } else {
+    const nutrients = p.nutriments as Record<string, unknown> | undefined;
+    const energy = nutrients?.["energy-kcal_100g"];
+    const kj = nutrients?.energy_100g;
+    calories =
+      typeof energy === "number"
+        ? energy
+        : typeof kj === "number"
+          ? kj / 4.184
+          : NaN;
+    unit = p.serving_quantity_unit === "ml" ? "ml" : "g";
+    serving =
+      typeof p.serving_quantity === "number" ? p.serving_quantity : null;
+  }
+  if (!Number.isFinite(calories) || calories < 0 || calories > 1000)
+    return null;
+  if (
+    serving !== null &&
+    (!Number.isFinite(serving) || serving <= 0 || serving > 5000)
+  )
+    serving = null;
+  return {
+    code,
+    name: String(
+      p.product_name_bs ||
+        p.product_name ||
+        p.generic_name ||
+        "Prehrambeni proizvod",
+    ).slice(0, 160),
+    brand: String(p.brands || "").slice(0, 80),
+    caloriesPer100: Math.round(calories * 10) / 10,
+    unit,
+    serving,
+    source: `https://world.openfoodfacts.org/product/${code}`,
+  };
+}

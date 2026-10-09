@@ -19,6 +19,7 @@ import {
 import { cloudConfigured } from "@/lib/supabase/server";
 import { cloudGet, cloudPost } from "@/lib/supabase/workspace";
 import { onboardingIntake } from "@/lib/onboarding";
+import { diaryInput } from "@/lib/nutrition";
 export const runtime = "nodejs";
 const cookieName = "fitness_local_session";
 const limits = new Map<string, { count: number; reset: number }>();
@@ -493,13 +494,7 @@ export async function POST(req: NextRequest) {
             { error: "Samo korisnik može unositi podatke u svoj dnevnik." },
             403,
           );
-        const data = z
-          .object({
-            kind: z.enum(["meal", "water", "sleep", "energy", "measurement"]),
-            label: z.string().trim().min(1).max(200),
-            value: z.number().min(0).max(10000).optional(),
-          })
-          .parse(p);
+        const data = diaryInput.parse(p);
         await db.query(
           `INSERT INTO diary(id,user_id,kind,label,value) VALUES($1,$2,$3,$4,$5)`,
           [
